@@ -1,50 +1,308 @@
-<!doctype html>
-<html>
-  <head>
-    <title>Htop安装&amp;使用 // 胡忠庆</title>
-    <meta charset="utf-8" />
-    <meta name="generator" content="Hugo 0.59.1" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="author" content="John Doe" />
-    <meta name="description" content="" />
-    <base href="https://huzhongqing.github.io/" />
-    <link rel="stylesheet" href="https://huzhongqing.github.io/css/main.min.3bf813d46763420c83fb33c51950b4fc582483efcfddb34b4e4e8d6b811e3208.css" />
-  </head>
-  <body>
-    <header class="app-header">
-      <a href="/"><img class="app-header-avatar" src="./avatar.jpg" /></a>
-      <h1>胡忠庆</h1>
-      <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc vehicula turpis sit amet elit pretium.</p>
-      <div class="app-header-social">
-        
+<!DOCTYPE html>
+<html lang='en'><head>
+  <meta charset='utf-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='description' content=' 背景 htop拥有比top更加丰富的功能及精美的界面，可以让机器状态服务进程一目了然。 进程的搜索，筛选，排序和树形结构都是在观看当前状态的利器。是top的替代品，更相当于top的高级版本。
+如下图
+macOS下安装 如果有 brew 则直接执行 &gt; brew install htop
+linux(CentOS7)下安装 linux发行版本，可能存在当前资源仓库没有 htop 资源，所以需要先添加资源。 确认自己当前资源是否存在 htop 执行 &gt; yum search htop
+当不存在，则添加仓库源,启动epel源 &gt; yum -y install epel-release
+注：EPEL是由 Fedora 社区打造，为 RHEL 及衍生发行版如 CentOS、Scientific Linux 等提供高质量软件包的项目。装上了 EPEL之后，就相当于添加了一个第三方源。
+然后就正常安装htop了 &gt; yum -y install htop
+htop常用功能 F1 : 查看htop使用说明 F2 : 设置 F3 : 搜索进程 F4 : 过滤器，按关键字搜索 F5 : 显示树形结构 F6 : 选择排序方式 F7 : 减少nice值，这样就可以提高对应进程的优先级 F8 : 增加nice值，这样可以降低对应进程的优先级 F9 : 杀掉选中的进程 F10 : 退出htop / : 搜索字符 h : 显示帮助 l ：显示进程打开的文件: 如果安装了lsof，按此键可以显示进程所打开的文件 u ：显示所有用户，并可以选择某一特定用户的进程 s : 将调用strace追踪进程的系统调用 t : 显示树形结构 H ：显示/隐藏用户线程 I ：倒转排序顺序 K ：显示/隐藏内核线程 M ：按内存占用排序 P ：按CPU排序 T ：按运行时间排序 上下键或PgUP, PgDn : 移动选中进程 左右键或Home, End : 移动列表 Space(空格) : 标记/取消标记一个进程。命令可以作用于多个进程，例如 &#34;kill&#34;，将应用于所有已标记的进程'>
+<meta name='theme-color' content='#ffcd00'>
+
+<meta property='og:title' content='linux(CentOS7) &amp; macOS htop 安装 • huzhongqing'>
+<meta property='og:description' content=' 背景 htop拥有比top更加丰富的功能及精美的界面，可以让机器状态服务进程一目了然。 进程的搜索，筛选，排序和树形结构都是在观看当前状态的利器。是top的替代品，更相当于top的高级版本。
+如下图
+macOS下安装 如果有 brew 则直接执行 &gt; brew install htop
+linux(CentOS7)下安装 linux发行版本，可能存在当前资源仓库没有 htop 资源，所以需要先添加资源。 确认自己当前资源是否存在 htop 执行 &gt; yum search htop
+当不存在，则添加仓库源,启动epel源 &gt; yum -y install epel-release
+注：EPEL是由 Fedora 社区打造，为 RHEL 及衍生发行版如 CentOS、Scientific Linux 等提供高质量软件包的项目。装上了 EPEL之后，就相当于添加了一个第三方源。
+然后就正常安装htop了 &gt; yum -y install htop
+htop常用功能 F1 : 查看htop使用说明 F2 : 设置 F3 : 搜索进程 F4 : 过滤器，按关键字搜索 F5 : 显示树形结构 F6 : 选择排序方式 F7 : 减少nice值，这样就可以提高对应进程的优先级 F8 : 增加nice值，这样可以降低对应进程的优先级 F9 : 杀掉选中的进程 F10 : 退出htop / : 搜索字符 h : 显示帮助 l ：显示进程打开的文件: 如果安装了lsof，按此键可以显示进程所打开的文件 u ：显示所有用户，并可以选择某一特定用户的进程 s : 将调用strace追踪进程的系统调用 t : 显示树形结构 H ：显示/隐藏用户线程 I ：倒转排序顺序 K ：显示/隐藏内核线程 M ：按内存占用排序 P ：按CPU排序 T ：按运行时间排序 上下键或PgUP, PgDn : 移动选中进程 左右键或Home, End : 移动列表 Space(空格) : 标记/取消标记一个进程。命令可以作用于多个进程，例如 &#34;kill&#34;，将应用于所有已标记的进程'>
+<meta property='og:url' content='https://huzhongqing.github.io/posts/htop/'>
+<meta property='og:site_name' content='huzhongqing'>
+<meta property='og:type' content='article'><meta property='article:section' content='posts'><meta property='article:published_time' content='2019-03-01T15:56:28&#43;08:00'/><meta property='article:modified_time' content='2019-03-01T15:56:28&#43;08:00'/><meta name='twitter:card' content='summary'>
+
+<meta name="generator" content="Hugo 0.59.1" />
+
+  <title>linux(CentOS7) &amp; macOS htop 安装 • huzhongqing</title>
+  <link rel='canonical' href='https://huzhongqing.github.io/posts/htop/'>
+  
+  
+  <link rel='icon' href='/favicon.ico'>
+<link rel='stylesheet' href='/assets/css/main.6a060eb7.css'><link rel='stylesheet' href='/css/custom.css'><style>
+:root{--color-accent:#ffcd00;}
+</style>
+
+  
+
+</head>
+<body class='page type-posts has-sidebar'>
+
+  <div class='site'><div id='sidebar' class='sidebar'>
+  <a class='screen-reader-text' href='#main-menu'>Skip to Main Menu</a>
+
+  <div class='container'><section class='widget widget-about sep-after'>
+  <header>
+    
+    <div class='logo'>
+      <a href='/'>
+        <img src='/images/logo.png'>
+      </a>
+    </div>
+    
+    <h2 class='title site-title '>
+      <a href='/'>
+      huzhongqing
+      </a>
+    </h2>
+    <div class='desc'>
+    Minimalist theme for Hugo
+    </div>
+  </header>
+
+</section>
+<section class='widget widget-search sep-after'>
+  <header>
+    <h4 class='title widget-title'>Search</h4>
+  </header>
+
+  <form action='/search' id='search-form' class='search-form'>
+    <label>
+      <span class='screen-reader-text'>Search</span>
+      <input id='search-term' class='search-term' type='search' name='q' placeholder='Search&hellip;'>
+    </label></form>
+
+</section>
+<section class='widget widget-taxonomy_cloud sep-after'>
+  <header>
+    <h4 class='title widget-title'>Tags</h4>
+  </header>
+
+  <div class='container list-container'>
+  <ul class='list taxonomy-cloud'><span>Not a single Tag!</span></ul>
+</div>
+
+
+</section>
+</div>
+
+  <div class='sidebar-overlay'></div>
+</div><div class='main'><nav id='main-menu' class='menu main-menu' aria-label='Main Menu'>
+  <div class='container'>
+    <a class='screen-reader-text' href='#content'>Skip to Content</a>
+
+<button id='sidebar-toggler' class='sidebar-toggler' aria-controls='sidebar'>
+  <span class='screen-reader-text'>Toggle Sidebar</span>
+  <span class='open'><svg class='icon' viewbox='0 0 24 24' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' aria-hidden='true'>
+  
+  <line x1="3" y1="12" x2="21" y2="12" />
+  <line x1="3" y1="6" x2="21" y2="6" />
+  <line x1="3" y1="18" x2="21" y2="18" />
+  
+</svg>
+</span>
+  <span class='close'><svg class='icon' viewbox='0 0 24 24' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' aria-hidden='true'>
+  
+  <line x1="18" y1="6" x2="6" y2="18" />
+  <line x1="6" y1="6" x2="18" y2="18" />
+  
+</svg>
+</span>
+</button>
+    <ul><li class='item'>
+        <a href=''></a>
+      </li></ul>
+  </div>
+</nav><div class='header-widgets'>
+        <div class='container'>
+    
+    <style>.widget-breadcrumbs li:after{content:'\2f '}</style>
+  <section class='widget widget-breadcrumbs sep-after'>
+    <nav id='breadcrumbs'>
+      <ol><li><a href='/'>huzhongqing</a></li><li><a href='/posts/'>Posts</a></li><li><span>linux(CentOS7) &amp; macOS htop 安装</span></li></ol>
+    </nav>
+  </section></div>
       </div>
-    </header>
-    <main class="app-container">
-      
-  <article class="post">
-    <header class="post-header">
-      <h1 class ="post-title">Htop安装&amp;使用</h1>
-      <div class="post-meta">
-        <div>
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-calendar"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-          Mar 1, 2019
+
+      <header id='header' class='header site-header'>
+        <div class='container sep-after'>
+          <div class='header-info'><p class='site-title title'>huzhongqing</p><p class='desc site-desc'>Minimalist theme for Hugo</p>
+          </div>
         </div>
-        <div>
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-clock"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-          1 min read
-        </div></div>
-    </header>
-    <div class="post-content">
+      </header>
+
+      <main id='content'>
+
+
+<article lang='en' class='entry'>
+  <header class='header entry-header'>
+  <div class='container sep-after'>
+    <div class='header-info'>
+      <h1 class='title'>linux(CentOS7) &amp; macOS htop 安装</h1>
       
-
-<h1 id="第二个页面">第二个页面</h1>
-
-<p>页面2 虽然动了，但是是草稿,
-解除草稿，测试 sh</p>
 
     </div>
-  </article>
+    <div class='entry-meta'>
+  <span class='posted-on'><svg class='icon' viewbox='0 0 24 24' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' aria-hidden='true'>
+  
+  <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+  <line x1="16" y1="2" x2="16" y2="6"/>
+  <line x1="8" y1="2" x2="8" y2="6"/>
+  <line x1="3" y1="10" x2="21" y2="10"/>
+  
+</svg>
+<span class='screen-reader-text'>Posted on </span>
+  <time class='entry-date' datetime='2019-03-01T15:56:28&#43;08:00'>2019, Mar 01</time>
+</span>
 
-    </main>
-  </body>
+  
+  
+<span class='reading-time'><svg class='icon' viewbox='0 0 24 24' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' aria-hidden='true'>
+  
+  <circle cx="12" cy="12" r="10"/>
+  <polyline points="12 6 12 12 15 15"/>
+  
+</svg>
+One min read
+</span>
+
+
+</div>
+
+
+  </div>
+</header>
+
+  
+  
+
+  <div class='container entry-content'>
+  
+
+<h3 id="背景">背景</h3>
+
+<p>htop拥有比top更加丰富的功能及精美的界面，可以让机器状态服务进程一目了然。
+进程的搜索，筛选，排序和树形结构都是在观看当前状态的利器。是top的替代品，更相当于top的高级版本。</p>
+
+<p>如下图</p>
+
+<p><img src="https://github.com/huzhongqing/huzhongqing.github.io/hugo_source/images/htop.png" alt="htop界面" /></p>
+
+<h3 id="macos下安装">macOS下安装</h3>
+
+<p>如果有 brew 则直接执行
+&gt; brew install htop</p>
+
+<h3 id="linux-centos7-下安装">linux(CentOS7)下安装</h3>
+
+<p>linux发行版本，可能存在当前资源仓库没有 htop 资源，所以需要先添加资源。
+确认自己当前资源是否存在 htop 执行
+&gt; yum search htop</p>
+
+<p>当不存在，则添加仓库源,启动epel源
+&gt;  yum -y install epel-release</p>
+
+<p>注：EPEL是由 Fedora 社区打造，为 RHEL 及衍生发行版如 CentOS、Scientific Linux 等提供高质量软件包的项目。装上了 EPEL之后，就相当于添加了一个第三方源。</p>
+
+<p>然后就正常安装htop了
+&gt; yum -y install htop</p>
+
+<h3 id="htop常用功能">htop常用功能</h3>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-text" data-lang="text">F1 : 查看htop使用说明
+F2 : 设置
+F3 : 搜索进程
+F4 : 过滤器，按关键字搜索
+F5 : 显示树形结构
+F6 : 选择排序方式
+F7 : 减少nice值，这样就可以提高对应进程的优先级
+F8 : 增加nice值，这样可以降低对应进程的优先级
+F9 : 杀掉选中的进程
+F10 : 退出htop
+
+/ : 搜索字符
+h : 显示帮助
+l ：显示进程打开的文件: 如果安装了lsof，按此键可以显示进程所打开的文件
+u ：显示所有用户，并可以选择某一特定用户的进程
+s : 将调用strace追踪进程的系统调用
+t : 显示树形结构
+
+H ：显示/隐藏用户线程
+I ：倒转排序顺序
+K ：显示/隐藏内核线程    
+M ：按内存占用排序
+P ：按CPU排序    
+T ：按运行时间排序
+
+上下键或PgUP, PgDn : 移动选中进程
+左右键或Home, End : 移动列表    
+Space(空格) : 标记/取消标记一个进程。命令可以作用于多个进程，例如 &#34;kill&#34;，将应用于所有已标记的进程</code></pre></div>
+</div>
+
+  
+<footer class='entry-footer'>
+  <div class='container sep-before'>
+  </div>
+</footer>
+
+
+</article>
+
+<nav class='entry-nav'>
+  <div class='container'><div class='prev-entry sep-before'>
+      <a href='/posts/my-first-post/'>
+        <span aria-hidden='true'><svg class='icon' viewbox='0 0 24 24' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' aria-hidden='true'>
+  
+  <line x1="20" y1="12" x2="4" y2="12"/>
+  <polyline points="10 18 4 12 10 6"/>
+  
+</svg>
+ Previous</span>
+        <span class='screen-reader-text'>Previous post: </span>My First Post</a>
+    </div></div>
+</nav>
+
+
+
+
+      </main>
+
+      <footer id='footer' class='footer'>
+        <div class='container sep-before'><section class='widget widget-social_menu sep-after'><nav aria-label='Social Menu'>
+    <ul><li>
+        <a href='https://github.com/huzhongqing' target='_blank' rel='noopener'>
+          <span class='screen-reader-text'>Open Github account in new tab</span><svg class='icon' viewbox='0 0 24 24' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' aria-hidden='true'>
+  
+  <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/>
+  
+</svg>
+</a>
+      </li><li>
+        <a href='mailto:zhongqing2016@qq.com' target='_blank' rel='noopener'>
+          <span class='screen-reader-text'>Contact via Email</span><svg class='icon' viewbox='0 0 24 24' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' aria-hidden='true'>
+  
+  <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+  <polyline points="22,6 12,13 2,6"/>
+  
+</svg>
+</a>
+      </li></ul>
+  </nav>
+</section><div class='copyright'>
+  <p></p>
+</div>
+
+        </div>
+      </footer>
+
+    </div>
+  </div><script>window.__assets_js_src="/assets/js/"</script>
+
+<script src='/assets/js/main.67d669ac.js'></script><script src='/js/custom.js'></script>
+
+</body>
+
 </html>
+
