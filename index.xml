@@ -1,31 +1,22 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>My New Hugo Site</title>
+    <title>胡忠庆</title>
     <link>https://huzhongqing.github.io/</link>
-    <description>Recent content on My New Hugo Site</description>
+    <description>Recent content on 胡忠庆</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Fri, 01 Mar 2019 17:18:29 +0800</lastBuildDate>
+    <lastBuildDate>Fri, 01 Mar 2019 15:56:28 +0800</lastBuildDate>
     
 	<atom:link href="https://huzhongqing.github.io/index.xml" rel="self" type="application/rss+xml" />
     
     
     <item>
-      <title>3</title>
-      <link>https://huzhongqing.github.io/posts/3/</link>
-      <pubDate>Fri, 01 Mar 2019 17:18:29 +0800</pubDate>
-      
-      <guid>https://huzhongqing.github.io/posts/3/</guid>
-      <description>第三个页面</description>
-    </item>
-    
-    <item>
-      <title>2</title>
-      <link>https://huzhongqing.github.io/posts/2/</link>
+      <title>Htop安装&amp;使用</title>
+      <link>https://huzhongqing.github.io/posts/htop/</link>
       <pubDate>Fri, 01 Mar 2019 15:56:28 +0800</pubDate>
       
-      <guid>https://huzhongqing.github.io/posts/2/</guid>
+      <guid>https://huzhongqing.github.io/posts/htop/</guid>
       <description>第二个页面 页面2 虽然动了，但是是草稿, 解除草稿，测试 sh</description>
     </item>
     
