@@ -1,4 +1,4 @@
-baseURL = "https://huzhongqing.github.io/"
+baseURL = "https://huzhongqing.github.io/public"
 languageCode = "zh-CN"
 title = "huzhongqing"
 theme = "minimo"
