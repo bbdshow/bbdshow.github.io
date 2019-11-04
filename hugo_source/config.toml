@@ -1,0 +1,7 @@
+baseURL = "https://huzhongqing.github.io/"
+languageCode = "en-us"
+title = "胡忠庆"
+theme = "m10c"
+contentDir = "content"
+publishDir = "public"
+# buildDrafts = "true"
