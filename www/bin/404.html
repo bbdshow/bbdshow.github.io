@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+    <head prefix="og: http://ogp.me/ns# article: http://ogp.me/ns/article#">
+    <meta charset="UTF-8" /><meta name="theme-color" content="#fff" />
+        <script>
+            const userPrefers = localStorage.getItem('theme');
+            const darkModeMediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+            const lightModeMediaQuery = window.matchMedia('(prefers-color-scheme: light)');
+            if (userPrefers === "dark") {
+                changeModeMeta("dark");
+            } else if (userPrefers === "light") {
+                changeModeMeta("light");
+            } else if (darkModeMediaQuery.matches) {
+                changeModeMeta("dark");
+            } else if (lightModeMediaQuery.matches) {
+                changeModeMeta("light");
+            }
+            function changeModeMeta() {
+                document.documentElement.setAttribute('data-theme', arguments[0]);
+                if (arguments[0] === "dark") {
+                    changeThemeColor("#1c1c21");
+                } else {
+                    changeThemeColor("#fff");
+                }
+            }
+            function changeThemeColor() {
+                document.querySelector('meta[name="theme-color"]').setAttribute('content', arguments[0]);
+            }
+        </script>
+
+    
+
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=2.0, user-scalable=yes" />
+    
+    <meta http-equiv="X-UA-Compatible" content="IE=edge, chrome=1" />
+    
+    <meta name="format-detection" content="telephone=no, date=no, address=no, email=no" />
+    
+    <meta http-equiv="Cache-Control" content="no-transform" />
+    
+    <meta http-equiv="Cache-Control" content="no-siteapp" />
+    
+    <meta name="renderer" content="webkit" />
+
+    <meta name="generator" content="Hugo 0.62.2" />
+
+    <title>404 Page not found | huzhongqing</title>
+
+    <link rel="stylesheet" href="/css/meme.min.bc7b5e93323110e309b3b87769c348b4540cdb13489bbca2567e91265744d0da.css" integrity="sha256-vHtekzIxEOMJs7h3acNItFQM2xNIm7yiVn6RJldE0No=" data-instant-track />
+
+    <link href="https://fonts.googleapis.com/css?family=EB+Garamond:400,400i,500,700,700i|Noto+Serif+SC:400,500,700|Source+Code+Pro:400,400i,700,700i&display=swap&subset=chinese-simplified" rel="stylesheet" />
+
+    <meta name="author" content="huzhongqing" />
+    <meta name="description" content="" />
+    <meta name="keywords" content="" />
+    
+    <link rel="shortcut icon" type="image/ico" href="/favicon.ico" />
+    <link rel="mask-icon" href="/icons/safari-pinned-tab.svg" color="#2a6df4" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="huzhongqing" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="application-name" content="huzhongqing" />
+    <meta name="msapplication-starturl" content="../" />
+    <meta name="msapplication-TileColor" content="#fff" />
+    <meta name="msapplication-TileImage" content="../icons/mstile-150x150.png" />
+    <link rel="manifest" href="/manifest.json" />
+
+    
+    
+
+    
+    <link rel="canonical" href="http://www.huzhongqing.com/404.html" />
+
+
+
+
+<script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebPage",
+        "datePublished": "2020-01-16T14:00:00+00:00",
+        "dateModified": "2020-01-16T14:00:00+00:00",
+        "url": "http://www.huzhongqing.com/404.html",
+        "name": "404 Page not found",
+        "description": "",
+        "keywords": "",
+        "image": "http://www.huzhongqing.com/icons/apple-touch-icon.png",
+        "license": "[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)",
+        "publisher": {
+            "@type": "Organization",
+            "name": "huzhongqing",
+            "logo": {
+                "@type": "ImageObject",
+                "url": "http://www.huzhongqing.com/icons/apple-touch-icon.png"
+            },
+            "url": "http://www.huzhongqing.com/"
+        },
+        "mainEntityOfPage": {
+            "@type": "WebSite",
+            "@id": "http://www.huzhongqing.com/"
+        }
+    }
+</script>
+
+    
+
+
+
+<meta name="twitter:card" content="summary" />
+
+
+    
+
+
+
+
+
+
+<meta property="og:title" content="404 Page not found" />
+<meta property="og:description" content="" />
+<meta property="og:url" content="http://www.huzhongqing.com/404.html" />
+<meta property="og:site_name" content="huzhongqing" />
+<meta property="og:locale" content="zh-CN" /><meta property="og:image" content="http://www.huzhongqing.com/icons/apple-touch-icon.png" />
+    <meta property="og:type" content="website" />
+
+    
+</head>
+
+    <body>
+        <div class="container">
+            <main class="fof">
+                
+                <div class="main-inner">
+                    <h1>404 Page NOT Found.</h1>
+                    <div class="fof-footer">
+                        <a href="/">送我回主页</a>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </body>
+</html>
