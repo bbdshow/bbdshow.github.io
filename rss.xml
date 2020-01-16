@@ -23,7 +23,7 @@
         
             <copyright>[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)</copyright>
         
-        <lastBuildDate>Thu, 16 Jan 2020 15:14:04 +0800</lastBuildDate>
+        <lastBuildDate>Thu, 16 Jan 2020 15:15:00 +0800</lastBuildDate>
         
             <atom:link rel="self" type="application/rss+xml" href="http://www.huzhongqing.com/rss.xml" />
         
@@ -40,7 +40,7 @@
                 
                     <description><![CDATA[<h2 id="一张测试图">一张测试图</h2>
 <p>abv
-<img src="https://github.com/huzhongqing/images/tests/view_test.jpeg" alt="Alt text"></p>
+<img src="https://github.com/huzhongqing/images/tree/master/tests/view_test.jpeg" alt="Alt text"></p>
 ]]></description>
                 
                 
