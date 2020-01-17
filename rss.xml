@@ -19,7 +19,7 @@
         
             <copyright>[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)</copyright>
         
-        <lastBuildDate>Fri, 17 Jan 2020 11:52:53 +0800</lastBuildDate>
+        <lastBuildDate>Fri, 17 Jan 2020 11:55:01 +0800</lastBuildDate>
         
             <atom:link rel="self" type="application/rss+xml" href="http://www.huzhongqing.com/rss.xml" />
         
@@ -93,66 +93,6 @@ Martini-like API风格，模块化设计，依赖注入带来使用便捷优势�
                                 
                                 
                                     <category domain="http://www.huzhongqing.com/tags/gin/">gin</category>
-                                
-                            
-                        
-                    
-                
-            </item>
-        
-            <item>
-                <title>nas内网穿透</title>
-                <link>http://www.huzhongqing.com/posts/other/nas%E7%BE%A4%E6%99%96%E5%86%85%E7%BD%91%E7%A9%BF%E9%80%8F%E6%96%B9%E6%A1%88frp-ipv6/</link>
-                <guid isPermaLink="true">http://www.huzhongqing.com/posts/other/nas%E7%BE%A4%E6%99%96%E5%86%85%E7%BD%91%E7%A9%BF%E9%80%8F%E6%96%B9%E6%A1%88frp-ipv6/</guid>
-                <pubDate>Thu, 16 Jan 2020 13:05:48 +0800</pubDate>
-                
-                <copyright>[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)</copyright>
-                
-                    <description><![CDATA[<h2 id="nas群晖内网穿透方案frp--ipv6">nas(群晖)内网穿透方案(frp | ipv6)</h2>
-<blockquote>
-<p>介绍两种nas(群晖)两种内网穿透方案，解决黑群晖或者白群晖使用 QC 的相关问题。</p>
-</blockquote>
-<h3 id="基于ipv6实现点对点传输">基于ipv6实现，点对点传输</h3>
-<p>优点：</p>
-<ol>
-<li>无需中转服务器。</li>
-<li>点对点，家里有多大上行带宽一般就能跑慢</li>
-</ol>
-<p>缺点：</p>
-<ol>
-<li>需要ipv6设备支持。 双端设备都需支持，例如 手机、路由器。</li>
-<li>在某些情况下，或者路由器等问题传输速度会很慢。</li>
-<li>需要定时跑脚本更新nas机器的ipv6地址。</li>
-</ol>
-]]></description>
-                
-                
-                
-                
-                
-                    
-                        
-                    
-                        
-                    
-                        
-                            
-                                
-                                
-                                
-                                    <category domain="http://www.huzhongqing.com/tags/nas/">nas</category>
-                                
-                            
-                                
-                                
-                                
-                                    <category domain="http://www.huzhongqing.com/tags/frp/">frp</category>
-                                
-                            
-                                
-                                
-                                
-                                    <category domain="http://www.huzhongqing.com/tags/ipv6/">ipv6</category>
                                 
                             
                         

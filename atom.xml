@@ -4,7 +4,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom" xml:lang="zh-CN">
     <title type="text">huzhongqing</title>
     <subtitle type="html"></subtitle>
-    <updated>2020-01-17T11:52:53+08:00</updated>
+    <updated>2020-01-17T11:55:01+08:00</updated>
     <id>http://www.huzhongqing.com/</id>
     <link rel="alternate" type="text/html" href="http://www.huzhongqing.com/" />
     <link rel="self" type="application/atom+xml" href="http://www.huzhongqing.com/atom.xml" />
@@ -85,71 +85,6 @@ Martini-like API风格，模块化设计，依赖注入带来使用便捷优势�
                             
                             
                                 <category scheme="http://www.huzhongqing.com/tags/gin/" term="gin" label="gin" />
-                            
-                        
-                    
-                
-            
-        </entry>
-    
-        <entry>
-            <title type="text">nas内网穿透</title>
-            <link rel="alternate" type="text/html" href="http://www.huzhongqing.com/posts/other/nas%E7%BE%A4%E6%99%96%E5%86%85%E7%BD%91%E7%A9%BF%E9%80%8F%E6%96%B9%E6%A1%88frp-ipv6/" />
-            <id>http://www.huzhongqing.com/posts/other/nas%E7%BE%A4%E6%99%96%E5%86%85%E7%BD%91%E7%A9%BF%E9%80%8F%E6%96%B9%E6%A1%88frp-ipv6/</id>
-            <updated>2020-01-17T10:27:36+08:00</updated>
-            <published>2020-01-16T13:05:48+08:00</published>
-            <author>
-                    <uri>http://www.huzhongqing.com/</uri>
-                    </author>
-            <rights>[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)</rights>
-    
-    <summary type="html"><![CDATA[nas(群晖)内网穿透方案(frp | ipv6) 介绍两种nas(群晖)两种内网穿透方案，解决黑群晖或者白群晖使用 QC 的相关问题。 基于ipv6实现，点对点传输 优点： 无需中转服务器。 点对点，家里有多大上行带宽一般就能……]]></summary>
-            
-                <content type="html"><![CDATA[<h2 id="nas群晖内网穿透方案frp--ipv6">nas(群晖)内网穿透方案(frp | ipv6)</h2>
-<blockquote>
-<p>介绍两种nas(群晖)两种内网穿透方案，解决黑群晖或者白群晖使用 QC 的相关问题。</p>
-</blockquote>
-<h3 id="基于ipv6实现点对点传输">基于ipv6实现，点对点传输</h3>
-<p>优点：</p>
-<ol>
-<li>无需中转服务器。</li>
-<li>点对点，家里有多大上行带宽一般就能跑慢</li>
-</ol>
-<p>缺点：</p>
-<ol>
-<li>需要ipv6设备支持。 双端设备都需支持，例如 手机、路由器。</li>
-<li>在某些情况下，或者路由器等问题传输速度会很慢。</li>
-<li>需要定时跑脚本更新nas机器的ipv6地址。</li>
-</ol>
-]]></content>
-            
-            
-            
-            
-            
-                
-                    
-                
-                    
-                
-                    
-                        
-                            
-                            
-                            
-                                <category scheme="http://www.huzhongqing.com/tags/nas/" term="nas" label="nas" />
-                            
-                        
-                            
-                            
-                            
-                                <category scheme="http://www.huzhongqing.com/tags/frp/" term="frp" label="frp" />
-                            
-                        
-                            
-                            
-                            
-                                <category scheme="http://www.huzhongqing.com/tags/ipv6/" term="ipv6" label="ipv6" />
                             
                         
                     
