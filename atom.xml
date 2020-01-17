@@ -4,38 +4,32 @@
 <feed xmlns="http://www.w3.org/2005/Atom" xml:lang="zh-CN">
     <title type="text">huzhongqing</title>
     <subtitle type="html"></subtitle>
-    <updated>2020-01-17T10:34:52+08:00</updated>
+    <updated>2020-01-17T11:52:53+08:00</updated>
     <id>http://www.huzhongqing.com/</id>
     <link rel="alternate" type="text/html" href="http://www.huzhongqing.com/" />
     <link rel="self" type="application/atom+xml" href="http://www.huzhongqing.com/atom.xml" />
-    <author>
-            <name>huzhongqing</name>
-            <uri>http://www.huzhongqing.com/</uri>
-            
-                <email>zhongqing2016@qq.com</email>
-            </author>
+    
     <rights>[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)</rights>
     <generator uri="https://gohugo.io/" version="0.62.2">Hugo</generator>
         <entry>
             <title type="text">Golang-Gin WEB框架概述及分析目录</title>
             <link rel="alternate" type="text/html" href="http://www.huzhongqing.com/posts/gin/gin%E6%A6%82%E8%BF%B0%E5%8F%8A%E5%88%86%E6%9E%90%E7%9B%AE%E5%BD%95/" />
             <id>http://www.huzhongqing.com/posts/gin/gin%E6%A6%82%E8%BF%B0%E5%8F%8A%E5%88%86%E6%9E%90%E7%9B%AE%E5%BD%95/</id>
-            <updated>2020-01-17T10:34:47+08:00</updated>
+            <updated>2020-01-17T10:42:36+08:00</updated>
             <published>2020-01-17T09:18:52+08:00</published>
             <author>
-                    <name>huzhongqing</name>
-                    <uri>https://huzhongqing.com/</uri>
-                    <email>zhongqing2016@qq.com</email>
+                    <uri>http://www.huzhongqing.com/</uri>
                     </author>
             <rights>[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)</rights>
     
-    <summary type="html"><![CDATA[善于回顾，走过的路，时长看看，说不定能发现更多的惊喜！ Gin WEB框架，从开源到至今都一……]]></summary>
+    <summary type="html"><![CDATA[善于回顾，走过的路，时长看看，说不定能发现更多的惊喜！ Gin WEB框架，从开源到至今都一直秉承着简洁的设计理念，快！快！快！是它的代名称。简单，高效，灵活，是越来越多人喜欢它的理由。 Martini-like API风格，模块化设……]]></summary>
             
                 <content type="html"><![CDATA[<blockquote>
 <p>善于回顾，走过的路，时长看看，说不定能发现更多的惊喜！</p>
 </blockquote>
 <p><strong><a href="https://github.com/gin-gonic/gin">Gin</a></strong> WEB框架，从开源到至今都一直秉承着简洁的设计理念，快！快！快！是它的代名称。简单，高效，灵活，是越来越多人喜欢它的理由。
-Martini-like API风格，模块化设计，依赖注入带来使用便捷优势，修改过的httprouter带来高速的路由匹配性能优势。 [logo](<a href="https://raw.githubusercontent.com/huzhongqing/images/master/color.png">https://raw.githubusercontent.com/huzhongqing/images/master/color.png</a> =150x200)</p>
+Martini-like API风格，模块化设计，依赖注入带来使用便捷优势，修改过的httprouter带来高速的路由匹配性能优势。
+<img src="https://raw.githubusercontent.com/huzhongqing/images/master/color.png" width="80" hegiht="100" align=right /></img></p>
 <h2 id="一gin能做什么v150">一、Gin能做什么（v1.5.0）</h2>
 <p>Gin框架说实在的，在WEB开发过程中，做的东西其实不多，目前只专注于服务层，路由匹配，参数绑定/渲染，还有就是自定义中间件，这是它的核心功能。但是每一块功能就尽可能追求性能好，易用性高。</p>
 <ol>
@@ -105,13 +99,11 @@ Martini-like API风格，模块化设计，依赖注入带来使用便捷优势�
             <updated>2020-01-17T10:27:36+08:00</updated>
             <published>2020-01-16T13:05:48+08:00</published>
             <author>
-                    <name>huzhongqing</name>
-                    <uri>https://huzhongqing.com/</uri>
-                    <email>zhongqing2016@qq.com</email>
+                    <uri>http://www.huzhongqing.com/</uri>
                     </author>
             <rights>[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)</rights>
     
-    <summary type="html"><![CDATA[nas(群晖)内网穿透方案(frp | ipv6) 介绍两种nas(群晖)两种内网穿透方案，解决黑……]]></summary>
+    <summary type="html"><![CDATA[nas(群晖)内网穿透方案(frp | ipv6) 介绍两种nas(群晖)两种内网穿透方案，解决黑群晖或者白群晖使用 QC 的相关问题。 基于ipv6实现，点对点传输 优点： 无需中转服务器。 点对点，家里有多大上行带宽一般就能……]]></summary>
             
                 <content type="html"><![CDATA[<h2 id="nas群晖内网穿透方案frp--ipv6">nas(群晖)内网穿透方案(frp | ipv6)</h2>
 <blockquote>
