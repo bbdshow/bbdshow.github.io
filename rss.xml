@@ -23,7 +23,7 @@
         
             <copyright>[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)</copyright>
         
-        <lastBuildDate>Fri, 17 Jan 2020 10:29:04 +0800</lastBuildDate>
+        <lastBuildDate>Fri, 17 Jan 2020 10:34:52 +0800</lastBuildDate>
         
             <atom:link rel="self" type="application/rss+xml" href="http://www.huzhongqing.com/rss.xml" />
         
@@ -42,7 +42,7 @@
 <p>善于回顾，走过的路，时长看看，说不定能发现更多的惊喜！</p>
 </blockquote>
 <p><strong><a href="https://github.com/gin-gonic/gin">Gin</a></strong> WEB框架，从开源到至今都一直秉承着简洁的设计理念，快！快！快！是它的代名称。简单，高效，灵活，是越来越多人喜欢它的理由。
-Martini-like API风格，模块化设计，依赖注入带来使用便捷优势，修改过的httprouter带来高速的路由匹配性能优势。</p>
+Martini-like API风格，模块化设计，依赖注入带来使用便捷优势，修改过的httprouter带来高速的路由匹配性能优势。 [logo](<a href="https://raw.githubusercontent.com/huzhongqing/images/master/color.png">https://raw.githubusercontent.com/huzhongqing/images/master/color.png</a> =150x200)</p>
 <h2 id="一gin能做什么v150">一、Gin能做什么（v1.5.0）</h2>
 <p>Gin框架说实在的，在WEB开发过程中，做的东西其实不多，目前只专注于服务层，路由匹配，参数绑定/渲染，还有就是自定义中间件，这是它的核心功能。但是每一块功能就尽可能追求性能好，易用性高。</p>
 <ol>
