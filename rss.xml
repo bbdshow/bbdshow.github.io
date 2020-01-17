@@ -7,28 +7,34 @@
 
 <rss xmlns:atom="http://www.w3.org/2005/Atom" version="2.0">
     <channel>
-        <title>huzhongqing</title>
-        <link>http://www.huzhongqing.com/</link>
-        <description></description>
+        <title>Sharing the life of words</title>
+        <link>https://www.huzhongqing.com/</link>
+        <description>生活笔记</description>
         <generator>Hugo 0.62.2 https://gohugo.io/</generator>
         
             <language>zh-CN</language>
         
         
+            <managingEditor>zhongqing2016@qq.com (huzhongqing)</managingEditor>
+        
+        
+            <webMaster>zhongqing2016@qq.com (huzhongqing)</webMaster>
         
         
             <copyright>[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)</copyright>
         
-        <lastBuildDate>Fri, 17 Jan 2020 14:32:33 +0800</lastBuildDate>
+        <lastBuildDate>Fri, 17 Jan 2020 15:53:40 +0800</lastBuildDate>
         
-            <atom:link rel="self" type="application/rss+xml" href="http://www.huzhongqing.com/rss.xml" />
+            <atom:link rel="self" type="application/rss+xml" href="https://www.huzhongqing.com/rss.xml" />
         
         
             <item>
                 <title>Golang-Gin WEB框架概述及分析目录</title>
-                <link>http://www.huzhongqing.com/posts/gin/gin%E6%A6%82%E8%BF%B0%E5%8F%8A%E5%88%86%E6%9E%90%E7%9B%AE%E5%BD%95/</link>
-                <guid isPermaLink="true">http://www.huzhongqing.com/posts/gin/gin%E6%A6%82%E8%BF%B0%E5%8F%8A%E5%88%86%E6%9E%90%E7%9B%AE%E5%BD%95/</guid>
+                <link>https://www.huzhongqing.com/posts/gin/gin%E6%A6%82%E8%BF%B0%E5%8F%8A%E5%88%86%E6%9E%90%E7%9B%AE%E5%BD%95/</link>
+                <guid isPermaLink="true">https://www.huzhongqing.com/posts/gin/gin%E6%A6%82%E8%BF%B0%E5%8F%8A%E5%88%86%E6%9E%90%E7%9B%AE%E5%BD%95/</guid>
                 <pubDate>Fri, 17 Jan 2020 09:18:52 +0800</pubDate>
+                
+                    <author>zhongqing2016@qq.com (huzhongqing)</author>
                 
                 <copyright>[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)</copyright>
                 
@@ -38,7 +44,7 @@
 <p><strong><a href="https://github.com/gin-gonic/gin">Gin</a></strong> WEB框架，从开源到至今都一直秉承着简洁的设计理念，快！快！快！是它的代名称。简单，高效，灵活，是越来越多人喜欢它的理由。
 Martini-like API风格，模块化设计，依赖注入带来使用便捷优势，修改过的httprouter带来高速的路由匹配性能优势。
 <img src="https://raw.githubusercontent.com/huzhongqing/images/master/color.png" width="80" hegiht="100" align=right /></img></p>
-<h2 id="一gin能做什么v150">一、Gin能做什么（v1.5.0）</h2>
+<h2 id="gin能做什么v150">Gin能做什么（v1.5.0）</h2>
 <p>Gin框架说实在的，在WEB开发过程中，做的东西其实不多，目前只专注于服务层，路由匹配，参数绑定/渲染，还有就是自定义中间件，这是它的核心功能。但是每一块功能就尽可能追求性能好，易用性高。</p>
 <ol>
 <li>启动HTTP(s)服务，快捷运行多服务，多监听端口，自定义HTTP配置等</li>
@@ -49,7 +55,7 @@ Martini-like API风格，模块化设计，依赖注入带来使用便捷优势�
 <li>包装 http.Request 并提供多种快捷方法操作，Get/Set Cookie，Header，文件上传等。</li>
 </ol>
 <p>以上是我们用到的常用方法，不同于Beego的大而全，只专注于自己更擅长的事情，所以更轻量，上手更快！</p>
-<h2 id="二分析目录">二、分析目录</h2>
+<h2 id="分析目录">分析目录</h2>
 <p>后续将对Gin框架的源码进行分析，并提供示例记录。尽可能理解清楚，为什么这样设计？为什么这样实现？为什么这样使用？以及当前版本的最佳实践。</p>
 <h3 id="大模块分析顺序">大模块分析顺序</h3>
 <ol>
@@ -60,7 +66,7 @@ Martini-like API风格，模块化设计，依赖注入带来使用便捷优势�
 <li>中间件实现</li>
 <li>异常处理</li>
 </ol>
-<h2 id="三结语">三、结语</h2>
+<h2 id="结语">结语</h2>
 <p>使用Gin框架大概2年了，多数API项目都基于它构建，但是后期很少去跟进代码的Commit，以至于总感觉现在只用到了它的皮毛（虽然够用），但是还是想继续了解到深处，这样更有利于以后自己设计相关框架。并保持时刻记录分享的习惯。</p>
 ]]></description>
                 
@@ -74,7 +80,7 @@ Martini-like API风格，模块化设计，依赖注入带来使用便捷优势�
                                 
                                 
                                 
-                                    <category domain="http://www.huzhongqing.com/categories/%E6%8A%80%E6%9C%AF%E7%AC%94%E8%AE%B0/">技术笔记</category>
+                                    <category domain="https://www.huzhongqing.com/categories/%E6%8A%80%E6%9C%AF%E7%AC%94%E8%AE%B0/">技术笔记</category>
                                 
                             
                         
@@ -86,13 +92,13 @@ Martini-like API风格，模块化设计，依赖注入带来使用便捷优势�
                                 
                                 
                                 
-                                    <category domain="http://www.huzhongqing.com/tags/golang/">golang</category>
+                                    <category domain="https://www.huzhongqing.com/tags/golang/">golang</category>
                                 
                             
                                 
                                 
                                 
-                                    <category domain="http://www.huzhongqing.com/tags/gin/">gin</category>
+                                    <category domain="https://www.huzhongqing.com/tags/gin/">gin</category>
                                 
                             
                         
