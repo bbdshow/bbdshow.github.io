@@ -23,7 +23,7 @@
         
             <copyright>[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)</copyright>
         
-        <lastBuildDate>Fri, 17 Jan 2020 17:02:12 +0800</lastBuildDate>
+        <lastBuildDate>Fri, 17 Jan 2020 17:08:00 +0800</lastBuildDate>
         
             <atom:link rel="self" type="application/rss+xml" href="https://www.huzhongqing.com/rss.xml" />
         
@@ -99,6 +99,442 @@ Martini-like API风格，模块化设计，依赖注入带来使用便捷优势�
                                 
                                 
                                     <category domain="https://www.huzhongqing.com/tags/gin/">gin</category>
+                                
+                            
+                        
+                    
+                
+            </item>
+        
+            <item>
+                <title>Prometheus 搭建记录</title>
+                <link>https://www.huzhongqing.com/posts/other/prometheus-deploy/</link>
+                <guid isPermaLink="true">https://www.huzhongqing.com/posts/other/prometheus-deploy/</guid>
+                <pubDate>Tue, 17 Sep 2019 16:09:40 +0800</pubDate>
+                
+                    <author>zhongqing2016@qq.com (huzhongqing)</author>
+                
+                <copyright>[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)</copyright>
+                
+                    <description><![CDATA[<blockquote>
+<p>信任固然好，监控更重要</p>
+</blockquote>
+<p>Prometheus 监控简单搭建思路，满足监控目标服务自发现。采用到 prometheus，grafana，confd，etcd工具搭配使用。</p>
+<p>Prometheus负责把metrics数据从监控服务端抓取到本地或远端存储，Grafana通过连接Prometheus数据源，通过PromQL查询所抓取到的监控数据绘制成精美实用的报表，Grafana支持报表模版一键导入极为方便。Confd配合ETCD自动添加/更新监测任务，当服务存在N多地址时，给维护带来极大的方便。</p>
+<p><strong>这里不对某一组件做详细介绍。</strong></p>
+<h2 id="prometheus">Prometheus</h2>
+<h3 id="搭建架构图">搭建架构图</h3>
+<p><img src="https://raw.githubusercontent.com/huzhongqing/images/master/%E7%9B%91%E6%8E%A7%E6%B5%81%E7%A8%8B%E5%9B%BE.png" width="500" hegiht="600" align="center" /></img></p>
+<h3 id="本文采取的部署方式及配置">本文采取的部署方式及配置</h3>
+<p>本文介绍最常用的使用模式，即使用Pull目标服务的方式。通过配置不同的job和targets，实现不同的项目监控。对比Push系列(存在agent)的监控平台，在部署上有更大的优势。数据存储到本地(存在单点，可扩展/耐用性的不足，所以提供HTTP接口支持远端时序数据库)，如果数据要保证不可丢，那建议采用远端存储的方式。对于需要大数据量的查询语句，也建议迁移到远端(此处不讨论)。 <a href="https://prometheus.io/docs/prometheus/latest/storage/">存储设置参考</a></p>
+<p>部署的方式主体分两种：单点部署简单方便，能够成熟较大的监控规模，缺点也显而易见，单点架构存在的毛病，他都有，哈哈，但是本身prometheus自己已经做到自治性，而且本身可靠性很强，对付一千以内的监控节点应该还是可行的。<a href="https://yunlzheng.gitbook.io/prometheus-book/part-ii-prometheus-jin-jie/readmd/scale-prometheus-with-federation">联邦集群部署</a>(高可用，大规模监控，分区分组等)</p>
+<h3 id="prometheus配置简介">Prometheus配置简介</h3>
+<p>某种场景，常用<a href="https://prometheus.io/docs/prometheus/latest/configuration/configuration/">配置</a>介绍</p>
+<ol>
+<li>
+<p>运行时Reload配置</p>
+<ul>
+<li>给进程发送信号量 SIGHUP</li>
+<li>启动时开启 --web.enable-lifecycle  支持HTTP POST http://localhost:9090/-/reload</li>
+</ul>
+</li>
+<li>
+<p>指定启动配置文件(default:  /etc/prometheus/prometheus.yml)</p>
+<ul>
+<li>--config.file=/etc/prometheus/prometheus.yml    yaml文件，注意占位符的有效性</li>
+</ul>
+</li>
+<li>
+<p>本地存储路径</p>
+<ul>
+<li>--storage.tsdb.path=/prometheus</li>
+</ul>
+</li>
+<li>
+<p>开启API访问</p>
+<ul>
+<li>--web.enable-admin-api</li>
+</ul>
+</li>
+<li>
+<p>prometheus自己提供可视化模版，但是相对没有grafana好用，所以下面配置可以不配置</p>
+<ul>
+<li>--web.console.libraries=/usr/share/prometheus/console_libraries</li>
+<li>--web.console.templates=/usr/share/prometheus/consoles</li>
+</ul>
+</li>
+</ol>
+<p>优选Docker容器部署，好处不用说，只要数据文件不被破坏，加上restart=always，基本可以保证服务不中断。附上 docker-compose.yml (macOS) 文件可根据下述文件适当修改。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-yaml" data-lang="yaml">version<span class="p">:</span><span class="w"> </span><span class="s1">&#39;3&#39;</span><span class="w">
+</span><span class="w">
+</span><span class="w"></span>services<span class="p">:</span><span class="w">
+</span><span class="w">  </span>prometheus<span class="p">:</span><span class="w">
+</span><span class="w">    </span>image<span class="p">:</span><span class="w"> </span>prom/prometheus<span class="p">:</span>v2<span class="m">.10</span><span class="m">.0</span><span class="w">
+</span><span class="w">    </span>ports<span class="p">:</span><span class="w">
+</span><span class="w">      </span>-<span class="w"> </span><span class="m">9090</span><span class="p">:</span><span class="m">9090</span>/tcp<span class="w">
+</span><span class="w">    </span>user<span class="p">:</span><span class="w"> </span>root<span class="w">
+</span><span class="w">    </span>volumes<span class="p">:</span><span class="w">
+</span><span class="w">      </span>-<span class="w"> </span>${PWD}/data/prometheus<span class="p">:</span>/prometheus<span class="w">
+</span><span class="w">      </span>-<span class="w"> </span>${PWD}/config/prometheus/prometheus.yml<span class="p">:</span>/etc/prometheus/prometheus.yml<span class="w">
+</span><span class="w">    </span>entrypoint<span class="p">:</span><span class="w">
+</span><span class="w">      </span>-<span class="w"> </span>/bin/prometheus<span class="w">
+</span><span class="w">      </span>-<span class="w"> </span>--config.file=/etc/prometheus/prometheus.yml<span class="w">
+</span><span class="w">      </span>-<span class="w"> </span>--storage.tsdb.path=/prometheus<span class="w">
+</span><span class="w">      </span>-<span class="w"> </span>--web.enable-admin-api<span class="w">
+</span><span class="w">      </span>-<span class="w"> </span>--web.enable-lifecycle<span class="w">
+</span><span class="w">
+</span><span class="w">    </span>restart<span class="p">:</span><span class="w"> </span>always<span class="w">
+</span></code></pre></td></tr></table>
+</div>
+</div><h2 id="grafana">Grafana</h2>
+<p>一款优秀的渲染平台，<a href="https://grafana.com/docs/">Grafana官方文档</a></p>
+<p>主要是用来渲染prometheus的数据，当然grafana本身支持N多数据源。主要是它有图表仓库，对于标准的监控输出，比如node_exporter，直接可以找到别人已经配置好的模版，在线import(自己的模版也可以export)，非常方便！</p>
+<p>依然docker部署，注意user不同平台处理的权限可能不同。附上 docker-compose.yml (macOS) 文件可根据下述文件适当修改。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-yaml" data-lang="yaml">version<span class="p">:</span><span class="w"> </span><span class="s1">&#39;3&#39;</span><span class="w">
+</span><span class="w">
+</span><span class="w"></span>services<span class="p">:</span><span class="w">
+</span><span class="w">  </span>grafana<span class="p">:</span><span class="w">
+</span><span class="w">    </span>image<span class="p">:</span><span class="w"> </span>grafana/grafana<span class="p">:</span><span class="m">6.2</span><span class="m">.0</span><span class="w">
+</span><span class="w">    </span>volumes<span class="p">:</span><span class="w">
+</span><span class="w">      </span>-<span class="w"> </span>${PWD}/data/grafana<span class="p">:</span>/var/lib/grafana<span class="w">
+</span><span class="w">      </span>-<span class="w"> </span>${PWD}/config/grafana/grafana.ini<span class="p">:</span>/etc/grafana/grafana.ini<span class="w">
+</span><span class="w">    </span>ports<span class="p">:</span><span class="w">
+</span><span class="w">      </span>-<span class="w"> </span><span class="m">3000</span><span class="p">:</span><span class="m">3000</span>/tcp<span class="w">
+</span><span class="w">    </span>user<span class="p">:</span><span class="w"> </span>grafana<span class="w">
+</span></code></pre></td></tr></table>
+</div>
+</div><blockquote>
+<p>至此以上两个容器就能够基本跑出demo版本的监控系统了。但是对于可维护性还有一些欠缺，所以接下来使用 confd+etcd做prometheus的服务发现，当然prometheus本身支持很多种SD方式。<a href="https://prometheus.io/docs/prometheus/latest/configuration/configuration/">服务发现</a>，但对于etcd的使用因为没有标准，所以prometheus本身不提供支持。</p>
+</blockquote>
+<h2 id="confd">Confd</h2>
+<p>confd 轻量级配置管理工具，支持go template模版语法。保持本地配置最新，同时具备定期探测机制，配置变更自动reload。其后端支持的数据类型有：etcd、consul、vault、environment variables、redis、zookeeper、dynamodb、stackengine、rancher。不过一般使用Confd和etcd的配合使用比较多。</p>
+<h3 id="配置-针对于etcd">配置-针对于etcd</h3>
+<ul>
+<li>-onetime 执行一次就退出，相当于请求一下etcd解析成对应的模版。</li>
+<li>-backend=etcdv3  默认是 etcd v2 版本</li>
+<li>-node=http://127.0.0.1:2379  // etcd 连接地址</li>
+<li>-watch 开启watch功能，etcd变更自动变更配置文件。</li>
+</ul>
+<p>还有一些关于密码连接的问题，demo环境暂时未测试。</p>
+<p>此服务不建容器部署，因为文件映射，reload命令执行等都可能产生不便。对此容器需要别较高的定制，如果出现nginx reload 类似的情况，还是物理机部署来的可靠方便。但是也可以容器部署，部署的方式及思路，(本地启动在此包括了) 如下：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-Dockerfile" data-lang="Dockerfile"><span class="k">FROM</span><span class="s"> golang:1.10.2-alpine as builder</span><span class="err">
+</span><span class="err"></span><span class="err">
+</span><span class="err"></span><span class="k">ARG</span> <span class="nv">CONFD_VERSION</span><span class="o">=</span><span class="m">0</span>.16.0<span class="err">
+</span><span class="err"></span><span class="err">
+</span><span class="err"></span><span class="k">ADD</span> https://github.com/kelseyhightower/confd/archive/v<span class="si">${</span><span class="nv">CONFD_VERSION</span><span class="si">}</span>.tar.gz /tmp/<span class="err">
+</span><span class="err"></span><span class="err">
+</span><span class="err"></span><span class="k">RUN</span> apk add --no-cache <span class="se">\
+</span><span class="se"></span>    bzip2 <span class="se">\
+</span><span class="se"></span>    make <span class="o">&amp;&amp;</span> <span class="se">\
+</span><span class="se"></span>  mkdir -p /go/src/github.com/kelseyhightower/confd <span class="o">&amp;&amp;</span> <span class="se">\
+</span><span class="se"></span>  <span class="nb">cd</span> /go/src/github.com/kelseyhightower/confd <span class="o">&amp;&amp;</span> <span class="se">\
+</span><span class="se"></span>  tar --strip-components<span class="o">=</span><span class="m">1</span> -zxf /tmp/v<span class="si">${</span><span class="nv">CONFD_VERSION</span><span class="si">}</span>.tar.gz <span class="o">&amp;&amp;</span> <span class="se">\
+</span><span class="se"></span>  go install github.com/kelseyhightower/confd <span class="o">&amp;&amp;</span> <span class="se">\
+</span><span class="se"></span>  rm -rf /tmp/v<span class="si">${</span><span class="nv">CONFD_VERSION</span><span class="si">}</span>.tar.gz<span class="err">
+</span><span class="err"></span><span class="err">
+</span><span class="err"></span><span class="k">FROM</span><span class="s"> alpine:3.7</span><span class="err">
+</span><span class="err"></span><span class="k">COPY</span> --from<span class="o">=</span>builder /go/bin/confd /bin/confd<span class="err">
+</span><span class="err"></span><span class="err">
+</span><span class="err"></span><span class="k">RUN</span> apk add --no-cache curl<span class="err">
+</span><span class="err"></span><span class="k">RUN</span> chmod +x /bin/confd <span class="o">&amp;&amp;</span> <span class="se">\
+</span><span class="se"></span>    mkdir -p /etc/confd/<span class="o">{</span>conf.d,templates<span class="o">}</span><span class="err">
+</span><span class="err"></span><span class="err">
+</span><span class="err"></span><span class="k">CMD</span> <span class="p">[</span><span class="s2">&#34;confd&#34;</span><span class="p">]</span><span class="err">
+</span></code></pre></td></tr></table>
+</div>
+</div><ol>
+<li>mkdir -p /etc/confd/{conf.d,templates} 是放 confd 默认配置和模版文件的位置，可以根据不同的容器提前把配置和模版构建到镜像内</li>
+<li>配置文件需要执行的 cmd ，要在容器内安装好</li>
+</ol>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-yml" data-lang="yml">version<span class="p">:</span><span class="w"> </span><span class="s1">&#39;3&#39;</span><span class="w">
+</span><span class="w"></span>services<span class="p">:</span><span class="w">
+</span><span class="w">  </span>confd<span class="p">:</span><span class="w">
+</span><span class="w">    </span>image<span class="p">:</span><span class="w"> </span>confd<span class="p">:</span><span class="m">0.16</span><span class="m">.0</span><span class="w">
+</span><span class="w">    </span><span class="c"># 在物理机上面管理配置及模版文件  </span><span class="w">
+</span><span class="w">    </span>volumes<span class="p">:</span><span class="w">
+</span><span class="w">      </span>-<span class="w"> </span>${PWD}/data/templates<span class="p">:</span>/etc/confd/templates<span class="w">
+</span><span class="w">      </span>-<span class="w"> </span>${PWD}/data/conf.d<span class="p">:</span>/etc/confd/conf.d<span class="w">
+</span><span class="w">      </span><span class="c"># 把目标文件写入到指定位置，容器文件变更影响宿主机。</span><span class="w">
+</span><span class="w">      </span><span class="c"># 例如prometheus的配置文件，就要映射到主机~/.confd/server/prometheus.yml</span><span class="w">
+</span><span class="w">      </span>-<span class="w"> </span>~/.confd/server<span class="p">:</span>/server/conf.d<span class="w">
+</span><span class="w">    </span><span class="c"># 也可以调用配置sh</span><span class="w">
+</span><span class="w">    </span>entrypoint<span class="p">:</span><span class="w">
+</span><span class="w">      </span>-<span class="w"> </span>/bin/confd<span class="w">
+</span><span class="w">      </span>-<span class="w"> </span>-backend=etcdv3<span class="w">
+</span><span class="w">      </span>-<span class="w"> </span>-node=http<span class="p">:</span>//<span class="m">192.168</span><span class="m">.2</span><span class="m">.96</span><span class="p">:</span><span class="m">2379</span><span class="w">
+</span><span class="w">      </span>-<span class="w"> </span>-watch<span class="w">
+</span></code></pre></td></tr></table>
+</div>
+</div><p>PS: <strong>prometheus.conf.toml  放到volumes映射的conf.d文件夹内</strong></p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span><span class="lnt">8
+</span><span class="lnt">9
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-toml" data-lang="toml"><span class="p">[</span><span class="nx">template</span><span class="p">]</span>
+<span class="nx">prefix</span> <span class="p">=</span> <span class="s2">&#34;/prometheus&#34;</span>
+<span class="nx">src</span> <span class="p">=</span> <span class="s2">&#34;prometheus.conf.tmpl&#34;</span>
+<span class="nx">dest</span> <span class="p">=</span> <span class="s2">&#34;/server/conf.d/prometheus.yml&#34;</span>
+<span class="nx">mode</span> <span class="p">=</span> <span class="s2">&#34;0644&#34;</span>
+<span class="nx">keys</span> <span class="p">=</span> <span class="p">[</span>
+ <span class="s2">&#34;/job&#34;</span><span class="p">,</span>
+<span class="p">]</span>
+<span class="nx">reload_cmd</span> <span class="p">=</span> <span class="s2">&#34;curl -X POST http://192.168.2.96:9090/-/reload&#34;</span>
+</code></pre></td></tr></table>
+</div>
+</div><p>解释：</p>
+<ol>
+<li>prefix = etcd key 的前缀</li>
+<li>src = 加载的模版文件名称，这里是采用默认目录</li>
+<li>dest = 模版文件通过解析后，生成的文件及地址</li>
+<li>keys = 二级目录拆分，为后面的模版语法服务</li>
+<li>reload_cmd = 当发现配置文件变更后，执行的cmd，请求prometheus热加载配置的接口</li>
+</ol>
+<p>PS: <strong>prometheus.conf.tmpl 放到volumes映射的templates文件夹内</strong></p>
+<pre><code class="language-templates" data-lang="templates">global:
+  scrape_interval: 15s
+scrape_configs:
+  - job_name: 'prometheus'
+    scrape_interval: 5s
+    static_configs:
+      - targets: ['localhost:9090']
+{{range $label := ls &quot;/job&quot; }}
+  - job_name: '{{base $label}}'
+    scrape_interval: 5s
+    static_configs:
+{{$job_name := printf &quot;/job/%s/*&quot; $label}}{{range gets $job_name}}
+      - targets: [{{.Value}}]
+        labels:
+             instance: '{{base .Key}}'
+{{end}}
+{{end}}
+</code></pre><p>解释：</p>
+<ol>
+<li>提供一些内置函数，满足go template的<a href="https://golang.org/pkg/text/template/">模版语法</a></li>
+</ol>
+<h2 id="添加执行任务示例">添加执行任务示例</h2>
+<p>jobx 任务  subJobx 子任务模块</p>
+<blockquote>
+<p>ETCDCTL_API=3 etcdctl put /prometheus/job/jobx/subJobx '127.0.0.1:10010'</p>
+</blockquote>
+<p>查看prometheus容器映射的配置文件</p>
+<blockquote>
+<p>cat ~/.confd/server/prometheus.yml</p>
+</blockquote>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-text" data-lang="text">global:
+  scrape_interval: 15s
+scrape_configs:
+  - job_name: &#39;prometheus&#39;
+    scrape_interval: 5s
+    static_configs:
+      - targets: [&#39;localhost:9090&#39;]
+
+  - job_name: &#39;jobx&#39;
+    scrape_interval: 5s
+    static_configs:
+
+      - targets: [&#39;127.0.0.1:10010&#39; ]
+        labels:
+             instance: &#39;subJobx&#39;
+</code></pre></td></tr></table>
+</div>
+</div><p>在jobx任务下，添加第二个子任务</p>
+<blockquote>
+<p>ETCDCTL_API=3 etcdctl put /prometheus/job/jobx/subJobx1 '127.0.0.2:10010'</p>
+</blockquote>
+<p>此时可以去看prometheus后台<a href="http://localhost:9090/targets">http://localhost:9090/targets</a>看任务是否添加成功。如果要删除任务，直接删除key就可以了</p>
+<h2 id="etcd">ETCD</h2>
+<p>ETCD用处不用多说，主要是搭建简单，使用简单，协议理解简单。提供HTTPAPI(v2),gRPC watch(v3)。存储(bblot)高性能，又支持多版本。爽歪歪！搭建起来就完事了。可集群可单点，此文Docker单点</p>
+<p>因为ETCD只是作为demo搭建，所以没有什么特别的参数，线上环境是需要根据机器配置，存储介质和网络环境等，调整一定的参数。附上 docker-compose.yml (macOS) 文件可根据下述文件适当修改。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-yaml" data-lang="yaml">version<span class="p">:</span><span class="w"> </span><span class="s1">&#39;3&#39;</span><span class="w">
+</span><span class="w"></span>services<span class="p">:</span><span class="w">
+</span><span class="w">  </span>etcd<span class="p">:</span><span class="w">
+</span><span class="w">    </span>image<span class="p">:</span><span class="w"> </span>quay.io/coreos/etcd<span class="p">:</span>v3<span class="m">.3</span><span class="w">
+</span><span class="w">    </span>user<span class="p">:</span><span class="w"> </span>root<span class="w">
+</span><span class="w">    </span>volumes<span class="p">:</span><span class="w">
+</span><span class="w">      </span>-<span class="w"> </span>${PWD}/data<span class="p">:</span>/default.etcd<span class="w">
+</span><span class="w">    </span><span class="c">#network_mode: &#39;host&#39;</span><span class="w">
+</span><span class="w">    </span>ports<span class="p">:</span><span class="w">
+</span><span class="w">      </span>-<span class="w"> </span><span class="m">2379</span><span class="p">:</span><span class="m">2379</span>/tcp<span class="w">
+</span><span class="w">    </span>entrypoint<span class="p">:</span><span class="w">
+</span><span class="w">      </span>-<span class="w"> </span>/usr/local/bin/etcd<span class="w">
+</span><span class="w">      </span>-<span class="w"> </span>--listen-client-urls=http<span class="p">:</span>//<span class="m">0.0</span><span class="m">.0</span><span class="m">.0</span><span class="p">:</span><span class="m">2379</span><span class="w">
+</span><span class="w">      </span>-<span class="w"> </span>--advertise-client-urls=http<span class="p">:</span>//<span class="m">0.0</span><span class="m">.0</span><span class="m">.0</span><span class="p">:</span><span class="m">2379</span><span class="w">
+</span><span class="w">    </span>restart<span class="p">:</span><span class="w"> </span>always<span class="w">
+</span></code></pre></td></tr></table>
+</div>
+</div><h2 id="总结">总结</h2>
+<p>整套监控涉及到4个模块，上述过程只是记录了一个最基本的搭建过程及每个模块在监控系统中承担的角色。当我们深度使用的时候一定还有很多坑要踩。此处还未研究prometheus的报警模块。每一个模块都是值得深入研究。后续也会记录更深的用法及踩坑的经验。</p>
+<p>最后推荐一下写的一个小中间件<a href="https://github.com/huzhongqing/ginprom/tree/master">ginprom</a>http exporter。如果项目在gin路由框架下，监控API访问量，耗时，流量，服务资源消耗等，可以快速接入prometheus的监控。</p>
+<h2 id="参考连接">参考连接</h2>
+<ol>
+<li><a href="https://prometheus.io/docs/introduction/overview/">官方文档</a></li>
+<li><a href="https://www.cnblogs.com/vovlie/p/7709312.html?utm_source=debugrun&amp;utm_medium=referral">剖析Prometheus的内部存储机制</a></li>
+<li><a href="https://yunlzheng.gitbook.io/prometheus-book/parti-prometheus-ji-chu/quickstart">Prometheus-book</a></li>
+</ol>
+]]></description>
+                
+                
+                
+                
+                
+                    
+                        
+                            
+                                
+                                
+                                
+                                    <category domain="https://www.huzhongqing.com/categories/%E6%8A%80%E6%9C%AF%E7%AC%94%E8%AE%B0/">技术笔记</category>
+                                
+                            
+                        
+                    
+                        
+                    
+                        
+                            
+                                
+                                
+                                
+                                    <category domain="https://www.huzhongqing.com/tags/%E7%9B%91%E6%8E%A7/">监控</category>
+                                
+                            
+                                
+                                
+                                
+                                    <category domain="https://www.huzhongqing.com/tags/prometheus/">prometheus</category>
                                 
                             
                         
