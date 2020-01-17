@@ -23,7 +23,7 @@
         
             <copyright>[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)</copyright>
         
-        <lastBuildDate>Fri, 17 Jan 2020 15:56:25 +0800</lastBuildDate>
+        <lastBuildDate>Fri, 17 Jan 2020 17:02:12 +0800</lastBuildDate>
         
             <atom:link rel="self" type="application/rss+xml" href="https://www.huzhongqing.com/rss.xml" />
         
@@ -99,6 +99,86 @@ Martini-like API风格，模块化设计，依赖注入带来使用便捷优势�
                                 
                                 
                                     <category domain="https://www.huzhongqing.com/tags/gin/">gin</category>
+                                
+                            
+                        
+                    
+                
+            </item>
+        
+            <item>
+                <title>Mongodb Log Cutting</title>
+                <link>https://www.huzhongqing.com/posts/other/mongodb-log-cutting/</link>
+                <guid isPermaLink="true">https://www.huzhongqing.com/posts/other/mongodb-log-cutting/</guid>
+                <pubDate>Thu, 27 Jun 2019 13:11:39 +0800</pubDate>
+                
+                    <author>zhongqing2016@qq.com (huzhongqing)</author>
+                
+                <copyright>[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)</copyright>
+                
+                    <description><![CDATA[<blockquote>
+<p>不积硅步无以至千里</p>
+</blockquote>
+<p>mongodb 运行日志，如果长期不进行滚动切割，会导致单日志文件过大，影响日志的写入与读取。所以可以通过给mongodb进程发送信号，让主进程自动切割日志
+此脚本的功能是：定时切割日志，并保存X天数的日志量。</p>
+<p>请适当的修改内部参数</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-sh" data-lang="sh"><span class="cp">#!/bin/bash
+</span><span class="cp"></span><span class="c1"># crond cutting mongodb.log</span> 
+<span class="nv">pidPath</span><span class="o">=</span>/data/mongodb/db/mongod.lock
+<span class="nv">logPath</span><span class="o">=</span>/data/mongodb/log/
+
+<span class="nv">PATH</span><span class="o">=</span>/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin
+<span class="nb">export</span> PATH
+<span class="nb">kill</span> -SIGUSR1 <span class="k">$(</span>cat <span class="si">${</span><span class="nv">pidPath</span><span class="si">}</span><span class="k">)</span>
+find <span class="s2">&#34;</span><span class="si">${</span><span class="nv">logPath</span><span class="si">}</span><span class="s2">&#34;</span> -mtime +7 -name <span class="s2">&#34;mongod.log*&#34;</span> -exec rm -rf <span class="o">{</span><span class="o">}</span> <span class="se">\;</span>
+
+</code></pre></td></tr></table>
+</div>
+</div>]]></description>
+                
+                
+                
+                
+                
+                    
+                        
+                            
+                                
+                                
+                                
+                                    <category domain="https://www.huzhongqing.com/categories/%E6%8A%80%E6%9C%AF%E7%AC%94%E8%AE%B0/">技术笔记</category>
+                                
+                            
+                        
+                    
+                        
+                    
+                        
+                            
+                                
+                                
+                                
+                                    <category domain="https://www.huzhongqing.com/tags/sh/">sh</category>
+                                
+                            
+                                
+                                
+                                
+                                    <category domain="https://www.huzhongqing.com/tags/mongodb/">mongodb</category>
                                 
                             
                         
