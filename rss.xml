@@ -23,10 +23,515 @@
         
             <copyright>[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)</copyright>
         
-        <lastBuildDate>Fri, 17 Jan 2020 17:08:00 +0800</lastBuildDate>
+        <lastBuildDate>Sun, 19 Jan 2020 11:56:00 +0800</lastBuildDate>
         
             <atom:link rel="self" type="application/rss+xml" href="https://www.huzhongqing.com/rss.xml" />
         
+        
+            <item>
+                <title>Gin HTTP Server 注册分析</title>
+                <link>https://www.huzhongqing.com/posts/gin/httpserver/</link>
+                <guid isPermaLink="true">https://www.huzhongqing.com/posts/gin/httpserver/</guid>
+                <pubDate>Sun, 19 Jan 2020 11:51:23 +0800</pubDate>
+                
+                    <author>zhongqing2016@qq.com (huzhongqing)</author>
+                
+                <copyright>[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)</copyright>
+                
+                    <description><![CDATA[<blockquote>
+<p>地转天旋，万事开头难，斗霜傲雪二十年，堂堂剑气尚寒。</p>
+</blockquote>
+<p>Gin 的优秀不止是性能上的凸显，也能在很多小细节上展现。下面我们就看看，WEB服务最基础的服务监听注册是怎么编写及实现的。</p>
+<h2 id="http服务注册">HTTP服务注册</h2>
+<p>来看看最简单的代码：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="kn">package</span> <span class="nx">main</span>
+
+<span class="kn">import</span> <span class="s">&#34;github.com/gin-gonic/gin&#34;</span>
+
+<span class="kd">func</span> <span class="nf">main</span><span class="p">(</span><span class="p">)</span> <span class="p">{</span>
+	<span class="c1">// 最简单的HTTP服务监听
+</span><span class="c1"></span>	<span class="nx">engine</span> <span class="o">:=</span> <span class="nx">gin</span><span class="p">.</span><span class="nf">Default</span><span class="p">(</span><span class="p">)</span>
+	<span class="nx">engine</span><span class="p">.</span><span class="nf">GET</span><span class="p">(</span><span class="s">&#34;/health&#34;</span><span class="p">,</span> <span class="kd">func</span><span class="p">(</span><span class="nx">c</span> <span class="o">*</span><span class="nx">gin</span><span class="p">.</span><span class="nx">Context</span><span class="p">)</span> <span class="p">{</span> <span class="nx">c</span><span class="p">.</span><span class="nf">JSON</span><span class="p">(</span><span class="mi">200</span><span class="p">,</span> <span class="s">&#34;ok&#34;</span><span class="p">)</span> <span class="p">}</span><span class="p">)</span>
+	<span class="k">if</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">engine</span><span class="p">.</span><span class="nf">Run</span><span class="p">(</span><span class="s">&#34;:8080&#34;</span><span class="p">)</span><span class="p">;</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+		<span class="nb">panic</span><span class="p">(</span><span class="nx">err</span><span class="p">)</span>
+	<span class="p">}</span>
+<span class="p">}</span>
+</code></pre></td></tr></table>
+</div>
+</div><p>对，没看错！只有三行，就能启动http服务本地监听8080端口，并启动一个健康检查。</p>
+<p>接下来我们就一步步看这三行代码，后面究竟做了些什么？</p>
+<h3 id="gindefault">gin.Default()</h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span><span class="lnt">8
+</span><span class="lnt">9
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="kd">func</span> <span class="nf">Default</span><span class="p">(</span><span class="p">)</span> <span class="o">*</span><span class="nx">Engine</span> <span class="p">{</span>
+	<span class="c1">// 监测当前运行环境(go version)，给出建议及提醒, 仅 gin debug 环境下输出
+</span><span class="c1"></span>	<span class="nf">debugPrintWARNINGDefault</span><span class="p">(</span><span class="p">)</span>
+	<span class="c1">// 初始化Engine结构体
+</span><span class="c1"></span>	<span class="nx">engine</span> <span class="o">:=</span> <span class="nf">New</span><span class="p">(</span><span class="p">)</span>
+	<span class="c1">// 使用一个日志中间件，recovery()在单个goroutine捕获接下来处理的异常，防止主进程异常退出
+</span><span class="c1"></span>	<span class="nx">engine</span><span class="p">.</span><span class="nf">Use</span><span class="p">(</span><span class="nf">Logger</span><span class="p">(</span><span class="p">)</span><span class="p">,</span> <span class="nf">Recovery</span><span class="p">(</span><span class="p">)</span><span class="p">)</span>
+	<span class="k">return</span> <span class="nx">engine</span>
+<span class="p">}</span>
+</code></pre></td></tr></table>
+</div>
+</div><p>这里最重要的就是 New() 函数。背后就是 Engine结构体</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span><span class="lnt">36
+</span><span class="lnt">37
+</span><span class="lnt">38
+</span><span class="lnt">39
+</span><span class="lnt">40
+</span><span class="lnt">41
+</span><span class="lnt">42
+</span><span class="lnt">43
+</span><span class="lnt">44
+</span><span class="lnt">45
+</span><span class="lnt">46
+</span><span class="lnt">47
+</span><span class="lnt">48
+</span><span class="lnt">49
+</span><span class="lnt">50
+</span><span class="lnt">51
+</span><span class="lnt">52
+</span><span class="lnt">53
+</span><span class="lnt">54
+</span><span class="lnt">55
+</span><span class="lnt">56
+</span><span class="lnt">57
+</span><span class="lnt">58
+</span><span class="lnt">59
+</span><span class="lnt">60
+</span><span class="lnt">61
+</span><span class="lnt">62
+</span><span class="lnt">63
+</span><span class="lnt">64
+</span><span class="lnt">65
+</span><span class="lnt">66
+</span><span class="lnt">67
+</span><span class="lnt">68
+</span><span class="lnt">69
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="kd">type</span> <span class="nx">Engine</span> <span class="kd">struct</span> <span class="p">{</span>
+	<span class="c1">// 路由分组结构体
+</span><span class="c1"></span>	<span class="nx">RouterGroup</span>
+	<span class="c1">// 当路由不匹配，是否自动重定向请求 /foo/ 301  /foo
+</span><span class="c1"></span>	<span class="nx">RedirectTrailingSlash</span> <span class="kt">bool</span>
+	<span class="c1">// 当路由不匹配尝试自动修复路由在匹配，例如 /FOO and /..//Foo 更正到 /foo
+</span><span class="c1"></span>	<span class="nx">RedirectFixedPath</span> <span class="kt">bool</span>
+	<span class="c1">// 开启，如果未匹配则返回 405不被允许，否则返回 404
+</span><span class="c1"></span>	<span class="nx">HandleMethodNotAllowed</span> <span class="kt">bool</span>
+
+	<span class="c1">// 用于获取client真是ip，例如头 X-Forwarded-For X-Appengine-Remote-Addr
+</span><span class="c1"></span>	<span class="nx">ForwardedByClientIP</span>    <span class="kt">bool</span>
+	<span class="c1">// #726 #755 If enabled, it will thrust some headers starting with
+</span><span class="c1"></span>	<span class="c1">// &#39;X-AppEngine...&#39; for better integration with that PaaS.
+</span><span class="c1"></span>	<span class="nx">AppEngine</span> <span class="kt">bool</span>
+
+	<span class="c1">// true url.RawPath 会被用来查找参数 默认false
+</span><span class="c1"></span>	<span class="nx">UseRawPath</span> <span class="kt">bool</span>
+	<span class="c1">// 如果true， path value 会被保留
+</span><span class="c1"></span>	<span class="c1">// 如果 UseRawPath是false(默认)，UnescapePathValues为true  url.Path会被保留并使用
+</span><span class="c1"></span>	<span class="nx">UnescapePathValues</span> <span class="kt">bool</span>
+
+	<span class="c1">// Value of &#39;maxMemory&#39; param that is given to http.Request&#39;s ParseMultipartForm
+</span><span class="c1"></span>	<span class="c1">// method call.
+</span><span class="c1"></span>	<span class="nx">MaxMultipartMemory</span> <span class="kt">int64</span>
+
+	<span class="nx">delims</span>           <span class="nx">render</span><span class="p">.</span><span class="nx">Delims</span>
+	<span class="nx">secureJsonPrefix</span> <span class="kt">string</span>
+	<span class="nx">HTMLRender</span>       <span class="nx">render</span><span class="p">.</span><span class="nx">HTMLRender</span>
+	<span class="nx">FuncMap</span>          <span class="nx">template</span><span class="p">.</span><span class="nx">FuncMap</span>
+	<span class="c1">// 注册方法处理链
+</span><span class="c1"></span>	<span class="nx">allNoRoute</span>       <span class="nx">HandlersChain</span>
+	<span class="nx">allNoMethod</span>      <span class="nx">HandlersChain</span>
+	<span class="nx">noRoute</span>          <span class="nx">HandlersChain</span>
+	<span class="nx">noMethod</span>         <span class="nx">HandlersChain</span>
+	<span class="nx">pool</span>             <span class="nx">sync</span><span class="p">.</span><span class="nx">Pool</span>
+	<span class="c1">// 每个请求方法后面对应一颗树(基树)
+</span><span class="c1"></span>	<span class="nx">trees</span>            <span class="nx">methodTrees</span>
+<span class="p">}</span>
+
+<span class="c1">// 可以看到对 Engine 的默认值进行处理
+</span><span class="c1"></span><span class="kd">func</span> <span class="nf">New</span><span class="p">(</span><span class="p">)</span> <span class="o">*</span><span class="nx">Engine</span> <span class="p">{</span>
+	<span class="nf">debugPrintWARNINGNew</span><span class="p">(</span><span class="p">)</span>
+	<span class="nx">engine</span> <span class="o">:=</span> <span class="o">&amp;</span><span class="nx">Engine</span><span class="p">{</span>
+		<span class="nx">RouterGroup</span><span class="p">:</span> <span class="nx">RouterGroup</span><span class="p">{</span>
+			<span class="nx">Handlers</span><span class="p">:</span> <span class="kc">nil</span><span class="p">,</span>
+			<span class="nx">basePath</span><span class="p">:</span> <span class="s">&#34;/&#34;</span><span class="p">,</span>
+			<span class="nx">root</span><span class="p">:</span>     <span class="kc">true</span><span class="p">,</span>
+		<span class="p">}</span><span class="p">,</span>
+		<span class="nx">FuncMap</span><span class="p">:</span>                <span class="nx">template</span><span class="p">.</span><span class="nx">FuncMap</span><span class="p">{</span><span class="p">}</span><span class="p">,</span>
+		<span class="nx">RedirectTrailingSlash</span><span class="p">:</span>  <span class="kc">true</span><span class="p">,</span>
+		<span class="nx">RedirectFixedPath</span><span class="p">:</span>      <span class="kc">false</span><span class="p">,</span>
+		<span class="nx">HandleMethodNotAllowed</span><span class="p">:</span> <span class="kc">false</span><span class="p">,</span>
+		<span class="nx">ForwardedByClientIP</span><span class="p">:</span>    <span class="kc">true</span><span class="p">,</span>
+		<span class="nx">AppEngine</span><span class="p">:</span>              <span class="nx">defaultAppEngine</span><span class="p">,</span>
+		<span class="nx">UseRawPath</span><span class="p">:</span>             <span class="kc">false</span><span class="p">,</span>
+		<span class="nx">UnescapePathValues</span><span class="p">:</span>     <span class="kc">true</span><span class="p">,</span>
+		<span class="nx">MaxMultipartMemory</span><span class="p">:</span>     <span class="nx">defaultMultipartMemory</span><span class="p">,</span>
+		<span class="nx">trees</span><span class="p">:</span>                  <span class="nb">make</span><span class="p">(</span><span class="nx">methodTrees</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">9</span><span class="p">)</span><span class="p">,</span>
+		<span class="nx">delims</span><span class="p">:</span>                 <span class="nx">render</span><span class="p">.</span><span class="nx">Delims</span><span class="p">{</span><span class="nx">Left</span><span class="p">:</span> <span class="s">&#34;{{&#34;</span><span class="p">,</span> <span class="nx">Right</span><span class="p">:</span> <span class="s">&#34;}}&#34;</span><span class="p">}</span><span class="p">,</span>
+		<span class="nx">secureJsonPrefix</span><span class="p">:</span>       <span class="s">&#34;while(1);&#34;</span><span class="p">,</span>
+	<span class="p">}</span>
+	<span class="nx">engine</span><span class="p">.</span><span class="nx">RouterGroup</span><span class="p">.</span><span class="nx">engine</span> <span class="p">=</span> <span class="nx">engine</span>
+	<span class="c1">// context pool 减少context重新申请带来的开销
+</span><span class="c1"></span>	<span class="nx">engine</span><span class="p">.</span><span class="nx">pool</span><span class="p">.</span><span class="nx">New</span> <span class="p">=</span> <span class="kd">func</span><span class="p">(</span><span class="p">)</span> <span class="kd">interface</span><span class="p">{</span><span class="p">}</span> <span class="p">{</span>
+		<span class="k">return</span> <span class="nx">engine</span><span class="p">.</span><span class="nf">allocateContext</span><span class="p">(</span><span class="p">)</span>
+	<span class="p">}</span>
+	<span class="k">return</span> <span class="nx">engine</span>
+<span class="p">}</span>
+</code></pre></td></tr></table>
+</div>
+</div><p>上述对结构体每个元素进行了翻译， 其中重要的就要数 RouterGroup，Context，各类 handlers  及 methodTrees 后面做详细解释。</p>
+<h2 id="engineget">engine.GET()</h2>
+<p>这里就涉及到了路由注册，GET 注册方法，/health 注册路径，后续就是处理方法，具体实现在RouterGroup结构体中，来初步了解一下</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="c1">// GET is a shortcut for router.Handle(&#34;GET&#34;, path, handle).
+</span><span class="c1"></span><span class="kd">func</span> <span class="p">(</span><span class="nx">group</span> <span class="o">*</span><span class="nx">RouterGroup</span><span class="p">)</span> <span class="nf">GET</span><span class="p">(</span><span class="nx">relativePath</span> <span class="kt">string</span><span class="p">,</span> <span class="nx">handlers</span> <span class="o">...</span><span class="nx">HandlerFunc</span><span class="p">)</span> <span class="nx">IRoutes</span> <span class="p">{</span>
+	<span class="k">return</span> <span class="nx">group</span><span class="p">.</span><span class="nf">handle</span><span class="p">(</span><span class="s">&#34;GET&#34;</span><span class="p">,</span> <span class="nx">relativePath</span><span class="p">,</span> <span class="nx">handlers</span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="kd">func</span> <span class="p">(</span><span class="nx">group</span> <span class="o">*</span><span class="nx">RouterGroup</span><span class="p">)</span> <span class="nf">handle</span><span class="p">(</span><span class="nx">httpMethod</span><span class="p">,</span> <span class="nx">relativePath</span> <span class="kt">string</span><span class="p">,</span> <span class="nx">handlers</span> <span class="nx">HandlersChain</span><span class="p">)</span> <span class="nx">IRoutes</span> <span class="p">{</span>
+	<span class="c1">// 计算合规的绝对路径，如果有 basePath 则 basePath + relativePath
+</span><span class="c1"></span>	<span class="nx">absolutePath</span> <span class="o">:=</span> <span class="nx">group</span><span class="p">.</span><span class="nf">calculateAbsolutePath</span><span class="p">(</span><span class="nx">relativePath</span><span class="p">)</span>
+	<span class="c1">// 向后追加处理方法，但是总handles长度不能超过 63
+</span><span class="c1"></span>	<span class="nx">handlers</span> <span class="p">=</span> <span class="nx">group</span><span class="p">.</span><span class="nf">combineHandlers</span><span class="p">(</span><span class="nx">handlers</span><span class="p">)</span>
+	<span class="c1">// 在 methodTrees 此方法，此路由下，重置 handlers。
+</span><span class="c1"></span>	<span class="nx">group</span><span class="p">.</span><span class="nx">engine</span><span class="p">.</span><span class="nf">addRoute</span><span class="p">(</span><span class="nx">httpMethod</span><span class="p">,</span> <span class="nx">absolutePath</span><span class="p">,</span> <span class="nx">handlers</span><span class="p">)</span>
+	<span class="k">return</span> <span class="nx">group</span><span class="p">.</span><span class="nf">returnObj</span><span class="p">(</span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="c1">// RouterGroup is used internally to configure router, a RouterGroup is associated with
+</span><span class="c1"></span><span class="c1">// a prefix and an array of handlers (middleware).
+</span><span class="c1"></span><span class="c1">// 路由匹配器
+</span><span class="c1"></span><span class="kd">type</span> <span class="nx">RouterGroup</span> <span class="kd">struct</span> <span class="p">{</span>
+	<span class="c1">// 注册到此路由下的所有处理方法， []HandlerFunc （type HandlerFunc func(*Context)）
+</span><span class="c1"></span>	<span class="nx">Handlers</span> <span class="nx">HandlersChain</span>
+	<span class="c1">// 基础路径，例如 /system 分组路径前缀
+</span><span class="c1"></span>	<span class="nx">basePath</span> <span class="kt">string</span>
+	<span class="c1">// engine 结构，多用于操作里面的 methodTrees， 或取其他 Handlers (noRoute...)
+</span><span class="c1"></span>	<span class="nx">engine</span>   <span class="o">*</span><span class="nx">Engine</span>
+	<span class="c1">// true ， 根路径， basePath=/
+</span><span class="c1"></span>	<span class="nx">root</span>     <span class="kt">bool</span>
+<span class="p">}</span>
+</code></pre></td></tr></table>
+</div>
+</div><p>以上逻辑，就把路由注册好了。则还剩最后一步。</p>
+<h2 id="enginerun">engine.Run()</h2>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="kd">func</span> <span class="p">(</span><span class="nx">engine</span> <span class="o">*</span><span class="nx">Engine</span><span class="p">)</span> <span class="nf">Run</span><span class="p">(</span><span class="nx">addr</span> <span class="o">...</span><span class="kt">string</span><span class="p">)</span> <span class="p">(</span><span class="nx">err</span> <span class="kt">error</span><span class="p">)</span> <span class="p">{</span>
+	<span class="c1">// 打印错误
+</span><span class="c1"></span>	<span class="k">defer</span> <span class="kd">func</span><span class="p">(</span><span class="p">)</span> <span class="p">{</span> <span class="nf">debugPrintError</span><span class="p">(</span><span class="nx">err</span><span class="p">)</span> <span class="p">}</span><span class="p">(</span><span class="p">)</span>
+	<span class="c1">// 如果不传入地址，默认有一个监听端口
+</span><span class="c1"></span>	<span class="nx">address</span> <span class="o">:=</span> <span class="nf">resolveAddress</span><span class="p">(</span><span class="nx">addr</span><span class="p">)</span>
+	<span class="nf">debugPrint</span><span class="p">(</span><span class="s">&#34;Listening and serving HTTP on %s\n&#34;</span><span class="p">,</span> <span class="nx">address</span><span class="p">)</span>
+	<span class="c1">// 其实就是包装的 http 包快速 TCP网络上 addr 地址的监听，
+</span><span class="c1"></span>	<span class="c1">// engine 是实现了  type Handler interface { ServeHTTP(ResponseWriter, *Request) }
+</span><span class="c1"></span>	<span class="nx">err</span> <span class="p">=</span> <span class="nx">http</span><span class="p">.</span><span class="nf">ListenAndServe</span><span class="p">(</span><span class="nx">address</span><span class="p">,</span> <span class="nx">engine</span><span class="p">)</span>
+	<span class="k">return</span>
+<span class="p">}</span>
+</code></pre></td></tr></table>
+</div>
+</div><p>很简单，其实就是对，http.ListenAndServe() 进行了包装，传入了自己的 Handler, 也就是Engine。之所以这么简单，是因为Golang在http包上面已经为我们封装的很完善了。</p>
+<h2 id="上述不足之处">上述不足之处</h2>
+<p>虽然我们可以看到三行代码就能启动http服务，但是上述这种方式还是有诸多不足之处。比如：</p>
+<ol>
+<li>未设置Gin框架运行模式，存在debug调试输出等。</li>
+<li>未设置http.Server 中的参数，比如重要的读写超时时间设置。</li>
+<li>启动和退出对于生产项目中不太优雅。</li>
+</ol>
+<h2 id="个人常用实践">个人常用实践</h2>
+<p>启动时根据运行环境进行Server定制，正常退出或者涉及到信号量的处理，最后把申请的资源释放。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span><span class="lnt">36
+</span><span class="lnt">37
+</span><span class="lnt">38
+</span><span class="lnt">39
+</span><span class="lnt">40
+</span><span class="lnt">41
+</span><span class="lnt">42
+</span><span class="lnt">43
+</span><span class="lnt">44
+</span><span class="lnt">45
+</span><span class="lnt">46
+</span><span class="lnt">47
+</span><span class="lnt">48
+</span><span class="lnt">49
+</span><span class="lnt">50
+</span><span class="lnt">51
+</span><span class="lnt">52
+</span><span class="lnt">53
+</span><span class="lnt">54
+</span><span class="lnt">55
+</span><span class="lnt">56
+</span><span class="lnt">57
+</span><span class="lnt">58
+</span><span class="lnt">59
+</span><span class="lnt">60
+</span><span class="lnt">61
+</span><span class="lnt">62
+</span><span class="lnt">63
+</span><span class="lnt">64
+</span><span class="lnt">65
+</span><span class="lnt">66
+</span><span class="lnt">67
+</span><span class="lnt">68
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="kn">package</span> <span class="nx">main</span>
+
+<span class="kn">import</span> <span class="p">(</span>
+	<span class="s">&#34;log&#34;</span>
+	<span class="s">&#34;net/http&#34;</span>
+	<span class="s">&#34;os&#34;</span>
+	<span class="s">&#34;os/signal&#34;</span>
+	<span class="s">&#34;syscall&#34;</span>
+	<span class="s">&#34;time&#34;</span>
+
+	<span class="s">&#34;github.com/gin-gonic/gin&#34;</span>
+<span class="p">)</span>
+
+<span class="kd">func</span> <span class="nf">main</span><span class="p">(</span><span class="p">)</span> <span class="p">{</span>
+	<span class="kd">var</span> <span class="nx">engine</span> <span class="o">*</span><span class="nx">gin</span><span class="p">.</span><span class="nx">Engine</span>
+	<span class="k">if</span> <span class="nx">os</span><span class="p">.</span><span class="nf">Getenv</span><span class="p">(</span><span class="s">&#34;RUN_ENV&#34;</span><span class="p">)</span> <span class="o">==</span> <span class="s">&#34;release&#34;</span> <span class="p">{</span>
+		<span class="nx">gin</span><span class="p">.</span><span class="nf">SetMode</span><span class="p">(</span><span class="nx">gin</span><span class="p">.</span><span class="nx">ReleaseMode</span><span class="p">)</span>
+		<span class="nx">engine</span> <span class="p">=</span> <span class="nx">gin</span><span class="p">.</span><span class="nf">New</span><span class="p">(</span><span class="p">)</span>
+		<span class="c1">// 注册一个全局recovery 防止因某个goroutine异常,导致主进程退出
+</span><span class="c1"></span>		<span class="c1">// 可采用自己的日志输出实现
+</span><span class="c1"></span>		<span class="c1">// SkipPaths []string 可添加，用于过滤health检查等Path
+</span><span class="c1"></span>		<span class="nx">engine</span><span class="p">.</span><span class="nf">Use</span><span class="p">(</span><span class="nx">gin</span><span class="p">.</span><span class="nf">Recovery</span><span class="p">(</span><span class="p">)</span><span class="p">)</span>
+	<span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+		<span class="nx">engine</span> <span class="p">=</span> <span class="nx">gin</span><span class="p">.</span><span class="nf">Default</span><span class="p">(</span><span class="p">)</span>
+	<span class="p">}</span>
+
+	<span class="c1">// 可路由分组，后期介绍
+</span><span class="c1"></span>	<span class="nx">engine</span><span class="p">.</span><span class="nf">GET</span><span class="p">(</span><span class="s">&#34;/health&#34;</span><span class="p">,</span> <span class="kd">func</span><span class="p">(</span><span class="nx">c</span> <span class="o">*</span><span class="nx">gin</span><span class="p">.</span><span class="nx">Context</span><span class="p">)</span> <span class="p">{</span> <span class="nx">c</span><span class="p">.</span><span class="nf">JSON</span><span class="p">(</span><span class="mi">200</span><span class="p">,</span> <span class="s">&#34;ok&#34;</span><span class="p">)</span> <span class="p">}</span><span class="p">)</span>
+
+	<span class="nx">srv</span> <span class="o">:=</span> <span class="nx">http</span><span class="p">.</span><span class="nx">Server</span><span class="p">{</span>
+		<span class="nx">Addr</span><span class="p">:</span>         <span class="s">&#34;:8080&#34;</span><span class="p">,</span>
+		<span class="nx">Handler</span><span class="p">:</span>      <span class="nx">engine</span><span class="p">,</span>
+		<span class="nx">ReadTimeout</span><span class="p">:</span>  <span class="mi">120</span> <span class="o">*</span> <span class="nx">time</span><span class="p">.</span><span class="nx">Second</span><span class="p">,</span>
+		<span class="nx">WriteTimeout</span><span class="p">:</span> <span class="mi">120</span> <span class="o">*</span> <span class="nx">time</span><span class="p">.</span><span class="nx">Second</span><span class="p">,</span>
+		<span class="nx">ErrorLog</span><span class="p">:</span>     <span class="kc">nil</span><span class="p">,</span> <span class="c1">// 可选日志
+</span><span class="c1"></span>	<span class="p">}</span>
+	<span class="c1">// 这里用 goroutine 包一下，当监听异常也可以不影响主进程
+</span><span class="c1"></span>	<span class="k">go</span> <span class="kd">func</span><span class="p">(</span><span class="p">)</span> <span class="p">{</span>
+		<span class="k">if</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">srv</span><span class="p">.</span><span class="nf">ListenAndServe</span><span class="p">(</span><span class="p">)</span><span class="p">;</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+			<span class="nb">panic</span><span class="p">(</span><span class="nx">err</span><span class="p">)</span>
+		<span class="p">}</span>
+	<span class="p">}</span><span class="p">(</span><span class="p">)</span>
+
+	<span class="c1">// 信号量, 用它柱塞主进程，对不同信号做出反应
+</span><span class="c1"></span>	<span class="nf">signalAccept</span><span class="p">(</span><span class="p">)</span>
+  <span class="c1">// 如果退出，在释放一些之前申请的资源，例如 db等。 db.Close()
+</span><span class="c1"></span>	<span class="nx">log</span><span class="p">.</span><span class="nf">Println</span><span class="p">(</span><span class="s">&#34;程序退出&#34;</span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="kd">func</span> <span class="nf">signalAccept</span><span class="p">(</span><span class="p">)</span> <span class="p">{</span>
+	<span class="c1">// 不同的信号量不同的处理方式
+</span><span class="c1"></span>	<span class="nx">ch</span> <span class="o">:=</span> <span class="nb">make</span><span class="p">(</span><span class="kd">chan</span> <span class="nx">os</span><span class="p">.</span><span class="nx">Signal</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+	<span class="nx">signal</span><span class="p">.</span><span class="nf">Notify</span><span class="p">(</span><span class="nx">ch</span><span class="p">,</span> <span class="nx">syscall</span><span class="p">.</span><span class="nx">SIGHUP</span><span class="p">,</span> <span class="nx">syscall</span><span class="p">.</span><span class="nx">SIGQUIT</span><span class="p">,</span> <span class="nx">syscall</span><span class="p">.</span><span class="nx">SIGTERM</span><span class="p">,</span> <span class="nx">syscall</span><span class="p">.</span><span class="nx">SIGINT</span><span class="p">)</span>
+	<span class="k">for</span> <span class="p">{</span>
+		<span class="nx">si</span> <span class="o">:=</span> <span class="o">&lt;-</span><span class="nx">ch</span>
+		<span class="k">switch</span> <span class="nx">si</span> <span class="p">{</span>
+		<span class="k">case</span> <span class="nx">syscall</span><span class="p">.</span><span class="nx">SIGQUIT</span><span class="p">,</span> <span class="nx">syscall</span><span class="p">.</span><span class="nx">SIGTERM</span><span class="p">,</span> <span class="nx">syscall</span><span class="p">.</span><span class="nx">SIGINT</span><span class="p">:</span>
+			<span class="nx">time</span><span class="p">.</span><span class="nf">Sleep</span><span class="p">(</span><span class="nx">time</span><span class="p">.</span><span class="nx">Second</span><span class="p">)</span>
+			<span class="c1">// 退出程序
+</span><span class="c1"></span>			<span class="k">return</span>
+		<span class="k">case</span> <span class="nx">syscall</span><span class="p">.</span><span class="nx">SIGHUP</span><span class="p">:</span>
+			<span class="c1">// 程序不退出，但是可以执行一些reload操作， 比如reload config等
+</span><span class="c1"></span>		<span class="k">default</span><span class="p">:</span>
+			<span class="c1">// 可选择实现，退出程序
+</span><span class="c1"></span>			<span class="k">return</span>
+		<span class="p">}</span>
+	<span class="p">}</span>
+<span class="p">}</span>
+</code></pre></td></tr></table>
+</div>
+</div><h2 id="结语">结语</h2>
+<p>因为Golang语言http包已经封装了很多，不用框架，也可以几行代码实现HTTP服务，Gin在这一块的包装只是更加实用方便了，提供了很多快捷方法，替换了http包中一些组件原本实现，比如路由匹配，Context等等。这章节讲解的内容并不多，只是给出了个人常用实践。后期将在记录Gin框架其他细节实现。</p>
+]]></description>
+                
+                
+                
+                
+                
+                    
+                        
+                            
+                                
+                                
+                                
+                                    <category domain="https://www.huzhongqing.com/categories/%E6%8A%80%E6%9C%AF%E7%AC%94%E8%AE%B0/">技术笔记</category>
+                                
+                            
+                        
+                    
+                        
+                    
+                        
+                            
+                                
+                                
+                                
+                                    <category domain="https://www.huzhongqing.com/tags/golang/">golang</category>
+                                
+                            
+                                
+                                
+                                
+                                    <category domain="https://www.huzhongqing.com/tags/gin/">gin</category>
+                                
+                            
+                        
+                    
+                
+            </item>
         
             <item>
                 <title>Golang-Gin WEB框架概述及分析目录</title>
