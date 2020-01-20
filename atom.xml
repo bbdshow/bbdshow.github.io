@@ -4,7 +4,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom" xml:lang="zh-CN">
     <title type="text">Sharing the life of words</title>
     <subtitle type="html">生活笔记</subtitle>
-    <updated>2020-01-19T11:56:00+08:00</updated>
+    <updated>2020-01-20T15:34:55+08:00</updated>
     <id>https://www.huzhongqing.com/</id>
     <link rel="alternate" type="text/html" href="https://www.huzhongqing.com/" />
     <link rel="self" type="application/atom+xml" href="https://www.huzhongqing.com/atom.xml" />
@@ -17,10 +17,375 @@
     <rights>[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)</rights>
     <generator uri="https://gohugo.io/" version="0.62.2">Hugo</generator>
         <entry>
-            <title type="text">Gin HTTP Server 注册分析</title>
+            <title type="text">Gin - RouterGroup 路由实现机制</title>
+            <link rel="alternate" type="text/html" href="https://www.huzhongqing.com/posts/gin/routergroup/" />
+            <id>https://www.huzhongqing.com/posts/gin/routergroup/</id>
+            <updated>2020-01-20T15:34:47+08:00</updated>
+            <published>2020-01-20T15:29:23+08:00</published>
+            <author>
+                    <name>huzhongqing</name>
+                    <uri>https://www.huzhongqing.com/</uri>
+                    <email>zhongqing2016@qq.com</email>
+                    </author>
+            <rights>[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)</rights>
+    
+    <summary type="html"><![CDATA[凿不休则沟深，斧不止则薪多。——王充 路由实现，是Gin框架的核心，REST风格注册路由，RadixTree（基数树）路由匹配实现，也让寻址更加快。实现了http.Server.Handler接口。合理……]]></summary>
+            
+                <content type="html"><![CDATA[<blockquote>
+<p>凿不休则沟深，斧不止则薪多。——王充</p>
+</blockquote>
+<p>路由实现，是Gin框架的核心，REST风格注册路由，RadixTree（<a href="%5Bhttps://baike.baidu.com/item/%E5%9F%BA%E6%95%B0%E6%A0%91/22853708%5D(https://baike.baidu.com/item/%E5%9F%BA%E6%95%B0%E6%A0%91/22853708)">基数树</a>）路由匹配实现，也让寻址更加快。实现了http.Server.Handler接口。合理设计使注册中间件变得非常快捷优雅。解耦巧妙，寻址高效。接下来我们就一点点剖析。</p>
+<h2 id="enginetrees">Engine.trees</h2>
+<p>Engine 结构关于路由的有两个比较重要的构成，一个是Engine.RouterGroup结构体，一个就是存储路径的基数树结构。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="kd">type</span> <span class="nx">methodTrees</span> <span class="p">[</span><span class="p">]</span><span class="nx">methodTree</span>	
+<span class="c1">// 每个请求方法后面对应一颗树(基树)
+</span><span class="c1"></span><span class="nx">trees</span>            <span class="nx">methodTrees</span>
+
+<span class="kd">const</span> <span class="p">(</span>
+	<span class="nx">static</span>   <span class="nx">nodeType</span> <span class="p">=</span> <span class="kc">iota</span> <span class="c1">// 普通节点 default
+</span><span class="c1"></span>	<span class="nx">root</span>                     <span class="c1">// 根节点
+</span><span class="c1"></span>	<span class="nx">param</span>                    <span class="c1">// 参数路由 /test/:name/:talk
+</span><span class="c1"></span>	<span class="nx">catchAll</span>                 <span class="c1">// 通配符类型 /abc/*key
+</span><span class="c1"></span><span class="p">)</span>
+
+<span class="kd">type</span> <span class="nx">methodTree</span> <span class="kd">struct</span> <span class="p">{</span>
+	<span class="nx">method</span> <span class="kt">string</span>
+	<span class="nx">root</span>   <span class="o">*</span><span class="nx">node</span>
+<span class="p">}</span>
+
+<span class="kd">type</span> <span class="nx">node</span> <span class="kd">struct</span> <span class="p">{</span>
+	<span class="nx">path</span>      <span class="kt">string</span> <span class="c1">// 当前节点相对路径（与祖先节点的 path 拼接可得到完整路径）
+</span><span class="c1"></span>	<span class="nx">indices</span>   <span class="kt">string</span> <span class="c1">// 所以孩子节点的path[0]组成的字符串
+</span><span class="c1"></span>	<span class="nx">children</span>  <span class="p">[</span><span class="p">]</span><span class="o">*</span><span class="nx">node</span> <span class="c1">// 子节点
+</span><span class="c1"></span>	<span class="nx">handlers</span>  <span class="nx">HandlersChain</span> <span class="c1">// 当前节点处理函数
+</span><span class="c1"></span>	<span class="nx">priority</span>  <span class="kt">uint32</span> <span class="c1">// 当前节点及子孙节点的实际路由数量
+</span><span class="c1"></span>	<span class="nx">nType</span>     <span class="nx">nodeType</span> <span class="c1">// 节点类型
+</span><span class="c1"></span>	<span class="nx">maxParams</span> <span class="kt">uint8</span> <span class="c1">// 子孙节点的最大参数数量
+</span><span class="c1"></span>    <span class="nx">wildChild</span> <span class="kt">bool</span> <span class="c1">// 子节点是否有通配符（&#39;:&#39; &#39;*&#39;）
+</span><span class="c1"></span>	<span class="nx">fullPath</span>  <span class="kt">string</span> <span class="c1">// 当前节点全路径
+</span><span class="c1"></span><span class="p">}</span>
+</code></pre></td></tr></table>
+</div>
+</div><p>trees 其实是由多棵树组成，每种HTTP Method对应一棵树。我们重点看一下这个组成基数树节点由哪些元素。</p>
+<p>UML图</p>
+<p><img src="http://q48vqd7m4.bkt.clouddn.com/img/20200120140814.png" alt=""></p>
+<p>我们以3个路由为示例展现最终生成的树形结构，同一请求Method，同一棵树下。</p>
+<p><img src="http://q48vqd7m4.bkt.clouddn.com/img/20200120141837.png" alt=""></p>
+<p>这里只是举例简单的路由方式，注意path、 indices 与 wildChild。相同的路径不存储，节省空间，时间复杂度也只有O(<em>k</em>)复杂度，其中k是所有字符串中最大的长度。</p>
+<p>RadixTree 实现方法在Gin项目根目录下 tree.go 文件。</p>
+<h2 id="engineroutergroup">Engine.RouterGroup</h2>
+<p>RouterGroup 是Gin对路由的操作管理，通过单独的 strcut 实现与Engine进行分开，然后容Engine继承RouterGroup这样，Engine 就得到了RouterGroup 所实现的所有功能，这样有利于代码的逻辑分离。而且Gin还定义了 IRoutes 接口，以展示和校验 RouterGroup 实现方法。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span><span class="lnt">36
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="kd">type</span> <span class="nx">RouterGroup</span> <span class="kd">struct</span> <span class="p">{</span>
+	<span class="nx">Handlers</span> <span class="nx">HandlersChain</span> <span class="c1">// 注册到此路由分组下的所有公共处理方法
+</span><span class="c1"></span>	<span class="nx">basePath</span> <span class="kt">string</span> <span class="c1">// 基础路径，例如 /health
+</span><span class="c1"></span>	<span class="nx">engine</span>   <span class="o">*</span><span class="nx">Engine</span> <span class="c1">// engine 结构，多用于操作里面的 methodTrees，addRoute
+</span><span class="c1"></span>	<span class="nx">root</span>     <span class="kt">bool</span> <span class="c1">// if true 根路径，basePath=/
+</span><span class="c1"></span><span class="p">}</span>
+
+<span class="kd">type</span> <span class="nx">IRoutes</span> <span class="kd">interface</span> <span class="p">{</span>
+  <span class="c1">// 直接注册HandlerFunc
+</span><span class="c1"></span>	<span class="nf">Use</span><span class="p">(</span><span class="o">...</span><span class="nx">HandlerFunc</span><span class="p">)</span> <span class="nx">IRoutes</span>
+	<span class="c1">// 以下不同方法注册HandlerFunc
+</span><span class="c1"></span>	<span class="nf">Handle</span><span class="p">(</span><span class="kt">string</span><span class="p">,</span> <span class="kt">string</span><span class="p">,</span> <span class="o">...</span><span class="nx">HandlerFunc</span><span class="p">)</span> <span class="nx">IRoutes</span>
+	<span class="nf">Any</span><span class="p">(</span><span class="kt">string</span><span class="p">,</span> <span class="o">...</span><span class="nx">HandlerFunc</span><span class="p">)</span> <span class="nx">IRoutes</span>
+	<span class="nf">GET</span><span class="p">(</span><span class="kt">string</span><span class="p">,</span> <span class="o">...</span><span class="nx">HandlerFunc</span><span class="p">)</span> <span class="nx">IRoutes</span>
+	<span class="nf">POST</span><span class="p">(</span><span class="kt">string</span><span class="p">,</span> <span class="o">...</span><span class="nx">HandlerFunc</span><span class="p">)</span> <span class="nx">IRoutes</span>
+	<span class="nf">DELETE</span><span class="p">(</span><span class="kt">string</span><span class="p">,</span> <span class="o">...</span><span class="nx">HandlerFunc</span><span class="p">)</span> <span class="nx">IRoutes</span>
+	<span class="nf">PATCH</span><span class="p">(</span><span class="kt">string</span><span class="p">,</span> <span class="o">...</span><span class="nx">HandlerFunc</span><span class="p">)</span> <span class="nx">IRoutes</span>
+	<span class="nf">PUT</span><span class="p">(</span><span class="kt">string</span><span class="p">,</span> <span class="o">...</span><span class="nx">HandlerFunc</span><span class="p">)</span> <span class="nx">IRoutes</span>
+	<span class="nf">OPTIONS</span><span class="p">(</span><span class="kt">string</span><span class="p">,</span> <span class="o">...</span><span class="nx">HandlerFunc</span><span class="p">)</span> <span class="nx">IRoutes</span>
+	<span class="nf">HEAD</span><span class="p">(</span><span class="kt">string</span><span class="p">,</span> <span class="o">...</span><span class="nx">HandlerFunc</span><span class="p">)</span> <span class="nx">IRoutes</span>
+	<span class="c1">// 文件系统
+</span><span class="c1"></span>	<span class="nf">StaticFile</span><span class="p">(</span><span class="kt">string</span><span class="p">,</span> <span class="kt">string</span><span class="p">)</span> <span class="nx">IRoutes</span>
+	<span class="nf">Static</span><span class="p">(</span><span class="kt">string</span><span class="p">,</span> <span class="kt">string</span><span class="p">)</span> <span class="nx">IRoutes</span>
+	<span class="nf">StaticFS</span><span class="p">(</span><span class="kt">string</span><span class="p">,</span> <span class="nx">http</span><span class="p">.</span><span class="nx">FileSystem</span><span class="p">)</span> <span class="nx">IRoutes</span>
+<span class="p">}</span>
+
+<span class="c1">// 注册handle
+</span><span class="c1"></span><span class="kd">func</span> <span class="p">(</span><span class="nx">group</span> <span class="o">*</span><span class="nx">RouterGroup</span><span class="p">)</span> <span class="nf">handle</span><span class="p">(</span><span class="nx">httpMethod</span><span class="p">,</span> <span class="nx">relativePath</span> <span class="kt">string</span><span class="p">,</span> <span class="nx">handlers</span> <span class="nx">HandlersChain</span><span class="p">)</span> <span class="nx">IRoutes</span> <span class="p">{</span>
+	<span class="c1">// 计算合规的绝对路径，如果有 basePath 则 basePath + relativePath
+</span><span class="c1"></span>	<span class="nx">absolutePath</span> <span class="o">:=</span> <span class="nx">group</span><span class="p">.</span><span class="nf">calculateAbsolutePath</span><span class="p">(</span><span class="nx">relativePath</span><span class="p">)</span>
+	<span class="c1">// 向后追加处理方法，但是总handles长度不能超过 63 
+</span><span class="c1"></span>	<span class="nx">handlers</span> <span class="p">=</span> <span class="nx">group</span><span class="p">.</span><span class="nf">combineHandlers</span><span class="p">(</span><span class="nx">handlers</span><span class="p">)</span>
+	<span class="c1">// 在 methodTrees 注册此路由，handlers = group.Handlers + handlers 
+</span><span class="c1"></span>	<span class="nx">group</span><span class="p">.</span><span class="nx">engine</span><span class="p">.</span><span class="nf">addRoute</span><span class="p">(</span><span class="nx">httpMethod</span><span class="p">,</span> <span class="nx">absolutePath</span><span class="p">,</span> <span class="nx">handlers</span><span class="p">)</span>
+	<span class="k">return</span> <span class="nx">group</span><span class="p">.</span><span class="nf">returnObj</span><span class="p">(</span><span class="p">)</span>
+<span class="p">}</span>
+</code></pre></td></tr></table>
+</div>
+</div><p>这样做的好处是什么？我们举几个例子说明：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="kd">func</span> <span class="nf">main</span><span class="p">(</span><span class="p">)</span> <span class="p">{</span>
+	<span class="nx">engine</span> <span class="o">:=</span> <span class="nx">gin</span><span class="p">.</span><span class="nf">Default</span><span class="p">(</span><span class="p">)</span>
+	<span class="c1">// 这里 engine.GET 继承了 RouterGroup
+</span><span class="c1"></span>	<span class="nx">engine</span><span class="p">.</span><span class="nf">GET</span><span class="p">(</span><span class="s">&#34;/health&#34;</span><span class="p">,</span> <span class="kd">func</span><span class="p">(</span><span class="nx">c</span> <span class="o">*</span><span class="nx">gin</span><span class="p">.</span><span class="nx">Context</span><span class="p">)</span> <span class="p">{</span> <span class="nx">c</span><span class="p">.</span><span class="nf">String</span><span class="p">(</span><span class="mi">200</span><span class="p">,</span> <span class="s">&#34;ok&#34;</span><span class="p">)</span> <span class="p">}</span><span class="p">)</span>
+	<span class="c1">// 如果我们有一组路由, 还是使用的 RouterGroup 暴露的方法
+</span><span class="c1"></span>	<span class="c1">// 为这个分组添加一个中间件, 等同于 v1.Use(...)
+</span><span class="c1"></span>	<span class="nx">v1</span> <span class="o">:=</span> <span class="nx">engine</span><span class="p">.</span><span class="nf">Group</span><span class="p">(</span><span class="s">&#34;/v1&#34;</span><span class="p">,</span> <span class="kd">func</span><span class="p">(</span><span class="nx">c</span> <span class="o">*</span><span class="nx">gin</span><span class="p">.</span><span class="nx">Context</span><span class="p">)</span> <span class="p">{</span>
+		<span class="nx">fmt</span><span class="p">.</span><span class="nf">Println</span><span class="p">(</span><span class="nx">c</span><span class="p">.</span><span class="nx">Request</span><span class="p">.</span><span class="nx">URL</span><span class="p">.</span><span class="nx">Path</span><span class="p">)</span>
+		<span class="nx">c</span><span class="p">.</span><span class="nf">Next</span><span class="p">(</span><span class="p">)</span>
+	<span class="p">}</span><span class="p">)</span>
+	<span class="nx">v1</span><span class="p">.</span><span class="nf">POST</span><span class="p">(</span><span class="s">&#34;/create&#34;</span><span class="p">,</span> <span class="kd">func</span><span class="p">(</span><span class="nx">c</span> <span class="o">*</span><span class="nx">gin</span><span class="p">.</span><span class="nx">Context</span><span class="p">)</span> <span class="p">{</span>
+		<span class="nx">fmt</span><span class="p">.</span><span class="nf">Println</span><span class="p">(</span><span class="s">&#34;create post router&#34;</span><span class="p">)</span>
+		<span class="nx">c</span><span class="p">.</span><span class="nf">Status</span><span class="p">(</span><span class="mi">200</span><span class="p">)</span>
+	<span class="p">}</span><span class="p">)</span>
+
+	<span class="c1">// 进行分组隔离
+</span><span class="c1"></span>	<span class="nx">v2</span> <span class="o">:=</span> <span class="nx">engine</span><span class="p">.</span><span class="nf">Group</span><span class="p">(</span><span class="s">&#34;/v2&#34;</span><span class="p">)</span>
+	<span class="nx">auth</span> <span class="o">:=</span> <span class="kd">func</span><span class="p">(</span><span class="p">)</span> <span class="nx">gin</span><span class="p">.</span><span class="nx">HandlerFunc</span> <span class="p">{</span>
+		<span class="k">return</span> <span class="kd">func</span><span class="p">(</span><span class="nx">c</span> <span class="o">*</span><span class="nx">gin</span><span class="p">.</span><span class="nx">Context</span><span class="p">)</span> <span class="p">{</span>
+			<span class="nx">user</span> <span class="o">:=</span> <span class="nx">c</span><span class="p">.</span><span class="nf">GetHeader</span><span class="p">(</span><span class="s">&#34;user&#34;</span><span class="p">)</span>
+			<span class="k">if</span> <span class="nx">user</span> <span class="o">==</span> <span class="s">&#34;&#34;</span> <span class="p">{</span>
+				<span class="nx">c</span><span class="p">.</span><span class="nf">Abort</span><span class="p">(</span><span class="p">)</span> <span class="c1">// 中断后续handler执行
+</span><span class="c1"></span>				<span class="k">return</span>
+			<span class="p">}</span>
+			<span class="nx">c</span><span class="p">.</span><span class="nf">Next</span><span class="p">(</span><span class="p">)</span> <span class="c1">// 下一个handler执行
+</span><span class="c1"></span>		<span class="p">}</span>
+	<span class="p">}</span>
+	<span class="c1">// 添加一个 auth 验证的中间件
+</span><span class="c1"></span>	<span class="nx">v2</span><span class="p">.</span><span class="nf">GET</span><span class="p">(</span><span class="s">&#34;/:name&#34;</span><span class="p">,</span> <span class="nf">auth</span><span class="p">(</span><span class="p">)</span><span class="p">,</span> <span class="kd">func</span><span class="p">(</span><span class="nx">c</span> <span class="o">*</span><span class="nx">gin</span><span class="p">.</span><span class="nx">Context</span><span class="p">)</span> <span class="p">{</span>
+		<span class="nx">name</span> <span class="o">:=</span> <span class="nx">c</span><span class="p">.</span><span class="nf">Param</span><span class="p">(</span><span class="s">&#34;name&#34;</span><span class="p">)</span>
+		<span class="nx">c</span><span class="p">.</span><span class="nf">String</span><span class="p">(</span><span class="mi">200</span><span class="p">,</span> <span class="nx">name</span><span class="p">)</span>
+	<span class="p">}</span><span class="p">)</span>
+
+	<span class="nx">_</span> <span class="p">=</span> <span class="nx">engine</span><span class="p">.</span><span class="nf">Run</span><span class="p">(</span><span class="s">&#34;:8080&#34;</span><span class="p">)</span>
+<span class="p">}</span>
+</code></pre></td></tr></table>
+</div>
+</div><p>可以看到通过Group我们可以与Engine进行解耦，而且Group暴露出来的 RouterGroup，针对不同的RouterGroup 我们还可以进行自定义的处理方法（中间件）。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="c1">// Group creates a new router group. You should add all the routes that have common middlewares or the same path prefix.
+</span><span class="c1"></span><span class="c1">// For example, all the routes that use a common middleware for authorization could be grouped.
+</span><span class="c1"></span><span class="kd">func</span> <span class="p">(</span><span class="nx">group</span> <span class="o">*</span><span class="nx">RouterGroup</span><span class="p">)</span> <span class="nf">Group</span><span class="p">(</span><span class="nx">relativePath</span> <span class="kt">string</span><span class="p">,</span> <span class="nx">handlers</span> <span class="o">...</span><span class="nx">HandlerFunc</span><span class="p">)</span> <span class="o">*</span><span class="nx">RouterGroup</span> <span class="p">{</span>
+	<span class="k">return</span> <span class="o">&amp;</span><span class="nx">RouterGroup</span><span class="p">{</span>
+		<span class="nx">Handlers</span><span class="p">:</span> <span class="nx">group</span><span class="p">.</span><span class="nf">combineHandlers</span><span class="p">(</span><span class="nx">handlers</span><span class="p">)</span><span class="p">,</span>
+		<span class="nx">basePath</span><span class="p">:</span> <span class="nx">group</span><span class="p">.</span><span class="nf">calculateAbsolutePath</span><span class="p">(</span><span class="nx">relativePath</span><span class="p">)</span><span class="p">,</span>
+		<span class="nx">engine</span><span class="p">:</span>   <span class="nx">group</span><span class="p">.</span><span class="nx">engine</span><span class="p">,</span>
+	<span class="p">}</span>
+<span class="p">}</span>
+
+<span class="c1">// ServeHTTP conforms to the http.Handler interface.
+</span><span class="c1"></span><span class="kd">func</span> <span class="p">(</span><span class="nx">engine</span> <span class="o">*</span><span class="nx">Engine</span><span class="p">)</span> <span class="nf">ServeHTTP</span><span class="p">(</span><span class="nx">w</span> <span class="nx">http</span><span class="p">.</span><span class="nx">ResponseWriter</span><span class="p">,</span> <span class="nx">req</span> <span class="o">*</span><span class="nx">http</span><span class="p">.</span><span class="nx">Request</span><span class="p">)</span> <span class="p">{</span>
+	<span class="c1">// 临时对象池，减少开销
+</span><span class="c1"></span>  <span class="nx">c</span> <span class="o">:=</span> <span class="nx">engine</span><span class="p">.</span><span class="nx">pool</span><span class="p">.</span><span class="nf">Get</span><span class="p">(</span><span class="p">)</span><span class="p">.</span><span class="p">(</span><span class="o">*</span><span class="nx">Context</span><span class="p">)</span>
+	<span class="nx">c</span><span class="p">.</span><span class="nx">writermem</span><span class="p">.</span><span class="nf">reset</span><span class="p">(</span><span class="nx">w</span><span class="p">)</span>
+	<span class="nx">c</span><span class="p">.</span><span class="nx">Request</span> <span class="p">=</span> <span class="nx">req</span>
+	<span class="nx">c</span><span class="p">.</span><span class="nf">reset</span><span class="p">(</span><span class="p">)</span>
+	<span class="c1">// 路由匹配，并处理 handlers
+</span><span class="c1"></span>	<span class="nx">engine</span><span class="p">.</span><span class="nf">handleHTTPRequest</span><span class="p">(</span><span class="nx">c</span><span class="p">)</span>
+
+	<span class="nx">engine</span><span class="p">.</span><span class="nx">pool</span><span class="p">.</span><span class="nf">Put</span><span class="p">(</span><span class="nx">c</span><span class="p">)</span>
+<span class="p">}</span>
+</code></pre></td></tr></table>
+</div>
+</div><h2 id="中间件-handlerfunc">中间件 ...HandlerFunc</h2>
+<p>上述示例，我们给出了如果注册中间件的多种方式。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="kd">func</span> <span class="p">(</span><span class="nx">group</span> <span class="o">*</span><span class="nx">RouterGroup</span><span class="p">)</span> <span class="nf">combineHandlers</span><span class="p">(</span><span class="nx">handlers</span> <span class="nx">HandlersChain</span><span class="p">)</span> <span class="nx">HandlersChain</span> <span class="p">{</span>
+	<span class="nx">finalSize</span> <span class="o">:=</span> <span class="nb">len</span><span class="p">(</span><span class="nx">group</span><span class="p">.</span><span class="nx">Handlers</span><span class="p">)</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="nx">handlers</span><span class="p">)</span>
+	<span class="k">if</span> <span class="nx">finalSize</span> <span class="o">&gt;=</span> <span class="nb">int</span><span class="p">(</span><span class="nx">abortIndex</span><span class="p">)</span> <span class="p">{</span>
+		<span class="nb">panic</span><span class="p">(</span><span class="s">&#34;too many handlers&#34;</span><span class="p">)</span>
+	<span class="p">}</span>
+	<span class="nx">mergedHandlers</span> <span class="o">:=</span> <span class="nb">make</span><span class="p">(</span><span class="nx">HandlersChain</span><span class="p">,</span> <span class="nx">finalSize</span><span class="p">)</span>
+	<span class="nb">copy</span><span class="p">(</span><span class="nx">mergedHandlers</span><span class="p">,</span> <span class="nx">group</span><span class="p">.</span><span class="nx">Handlers</span><span class="p">)</span>
+	<span class="nb">copy</span><span class="p">(</span><span class="nx">mergedHandlers</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="nx">group</span><span class="p">.</span><span class="nx">Handlers</span><span class="p">)</span><span class="p">:</span><span class="p">]</span><span class="p">,</span> <span class="nx">handlers</span><span class="p">)</span>
+	<span class="k">return</span> <span class="nx">mergedHandlers</span>
+<span class="p">}</span>
+</code></pre></td></tr></table>
+</div>
+</div><p>我们可以上段代码，是 handle 时调用，可以看到 RouterGroup.Handlers 始终是在指定路径的处理handlers 前面，RouterGroup.Handlers 这里一般是此路由组公共中间件(group.Use()) 。而具体的REST API则可以看到 auth() 就特指 /v2/:name 路径的中间件。</p>
+<h2 id="结语">结语</h2>
+<p>以上就是Gin的路由注册及路由查询匹配的大致运行路径及实现逻辑。很精致，代码也不多，编码设计直接思考和借鉴。关键是让使用非常方便，结构清晰一目了然，设计巧妙，利于扩展。</p>
+]]></content>
+            
+            
+            
+            
+            
+                
+                    
+                        
+                            
+                            
+                            
+                                <category scheme="https://www.huzhongqing.com/categories/%E6%8A%80%E6%9C%AF%E7%AC%94%E8%AE%B0/" term="技术笔记" label="技术笔记" />
+                            
+                        
+                    
+                
+                    
+                
+                    
+                        
+                            
+                            
+                            
+                                <category scheme="https://www.huzhongqing.com/tags/golang/" term="golang" label="golang" />
+                            
+                        
+                            
+                            
+                            
+                                <category scheme="https://www.huzhongqing.com/tags/gin/" term="gin" label="gin" />
+                            
+                        
+                    
+                
+            
+        </entry>
+    
+        <entry>
+            <title type="text">Gin - HTTP Server 注册分析</title>
             <link rel="alternate" type="text/html" href="https://www.huzhongqing.com/posts/gin/httpserver/" />
             <id>https://www.huzhongqing.com/posts/gin/httpserver/</id>
-            <updated>2020-01-19T11:55:51+08:00</updated>
+            <updated>2020-01-20T15:30:59+08:00</updated>
             <published>2020-01-19T11:51:23+08:00</published>
             <author>
                     <name>huzhongqing</name>
