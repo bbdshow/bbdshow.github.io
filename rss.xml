@@ -23,7 +23,7 @@
         
             <copyright>[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)</copyright>
         
-        <lastBuildDate>Mon, 02 Mar 2020 15:05:31 +0800</lastBuildDate>
+        <lastBuildDate>Mon, 02 Mar 2020 15:57:37 +0800</lastBuildDate>
         
             <atom:link rel="self" type="application/rss+xml" href="https://www.huzhongqing.com/rss.xml" />
         
@@ -1400,6 +1400,108 @@ scrape_configs:
                                 
                                 
                                     <category domain="https://www.huzhongqing.com/tags/prometheus/">prometheus</category>
+                                
+                            
+                        
+                    
+                
+            </item>
+        
+            <item>
+                <title>Git 使用记录及问题解决汇总</title>
+                <link>https://www.huzhongqing.com/posts/other/git-usage/</link>
+                <guid isPermaLink="true">https://www.huzhongqing.com/posts/other/git-usage/</guid>
+                <pubDate>Thu, 27 Jun 2019 13:11:39 +0800</pubDate>
+                
+                    <author>zhongqing2016@qq.com (huzhongqing)</author>
+                
+                <copyright>[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)</copyright>
+                
+                    <description><![CDATA[<blockquote>
+<p>温习与点滴之间，持续更新...</p>
+</blockquote>
+<p>记录在日常使用Git过程中发现的错误以及解决方法。做一个汇总，方便后期回顾温习。</p>
+<h2 id="使用版块">使用版块</h2>
+<h2 id="异常版块">异常版块</h2>
+<h3 id="问题-fatal-in-unpopulated-submodule--xxx">问题 fatal: in unpopulated submodule  'xxx'</h3>
+<p>未填充子模块，这类错误一般与主项目里面有子模块，但是子模块git的状态产生异常或追踪不到所产生的。</p>
+<p>因为子模块我可以丢弃，所以我解决的方法比较粗暴，一般就是主/子模块的关系，然后再重新建立关系。子模块的信息一般保存在两个地方</p>
+<p>./.gitmodules</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-toml" data-lang="toml"><span class="p">[</span><span class="nx">submodule</span> <span class="s2">&#34;www/public&#34;</span><span class="p">]</span>
+   <span class="nx">path</span> <span class="p">=</span> <span class="nx">www</span><span class="err">/</span><span class="nx">public</span>
+   <span class="nx">url</span> <span class="p">=</span> <span class="nx">git</span><span class="err">@</span><span class="nx">github</span><span class="p">.</span><span class="nx">com</span><span class="err">:</span><span class="nx">xxx</span><span class="err">/</span><span class="nx">xxx</span><span class="p">.</span><span class="nx">io</span><span class="p">.</span><span class="nx">git</span>
+   <span class="nx">branch</span> <span class="p">=</span> <span class="nx">master</span>
+</code></pre></td></tr></table>
+</div>
+</div><p>./.git/config</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-toml" data-lang="toml"><span class="p">[</span><span class="nx">submodule</span> <span class="s2">&#34;www/public&#34;</span><span class="p">]</span>
+       <span class="nx">url</span> <span class="p">=</span> <span class="nx">git</span><span class="err">@</span><span class="nx">github</span><span class="p">.</span><span class="nx">com</span><span class="err">:</span><span class="nx">xxx</span><span class="err">/</span><span class="nx">xxx</span><span class="p">.</span><span class="nx">git</span>
+       <span class="nx">active</span> <span class="p">=</span> <span class="kc">true</span>
+</code></pre></td></tr></table>
+</div>
+</div><p>删除的方法有多种</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-sh" data-lang="sh">git rm --cached yoursubname
+rm .gitmodules
+vim .git/config  // 删除<span class="o">[</span>submodule <span class="s2">&#34;www/public&#34;</span><span class="o">]</span> 相关
+</code></pre></td></tr></table>
+</div>
+</div><p>最后再添加子模块，这个时候会去 clone 子模块,和clone命令用法差不错</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-sh" data-lang="sh">git submodule add -b master git@github.com:xxx/xxx.git www/public
+</code></pre></td></tr></table>
+</div>
+</div><hr>
+]]></description>
+                
+                
+                
+                
+                
+                    
+                        
+                            
+                                
+                                
+                                
+                                    <category domain="https://www.huzhongqing.com/categories/%E6%8A%80%E6%9C%AF%E7%AC%94%E8%AE%B0/">技术笔记</category>
+                                
+                            
+                        
+                    
+                        
+                    
+                        
+                            
+                                
+                                
+                                
+                                    <category domain="https://www.huzhongqing.com/tags/git/">git</category>
                                 
                             
                         
