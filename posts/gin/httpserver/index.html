@@ -43,7 +43,7 @@
     
     <meta name="renderer" content="webkit" />
 
-    <meta name="generator" content="Hugo 0.62.2" />
+    <meta name="generator" content="Hugo 0.65.3" />
 
     <title>Gin - HTTP Server 注册分析 | Sharing the life of words</title>
 
@@ -84,7 +84,7 @@
         "@context": "https://schema.org",
         "@type": "BlogPosting",
         "datePublished": "2020-01-19T11:51:23+08:00",
-        "dateModified": "2020-01-20T15:30:59+08:00",
+        "dateModified": "2020-03-02T14:09:18+08:00",
         "url": "https://www.huzhongqing.com/posts/gin/httpserver/",
         "headline": "Gin - HTTP Server 注册分析",
         "description": "地转天旋，万事开头难，斗霜傲雪二十年，堂堂剑气尚寒。 Gin 的优秀不止是性能上的凸显，也能在很多小细节上展现。下面我们就看看，WEB服务最基础的服务监听注册是怎么编写及实现的。 HTTP服务注册 来看看最简单的……",
@@ -140,7 +140,7 @@
 <meta property="og:locale" content="zh-CN" /><meta property="og:image" content="https://www.huzhongqing.com/icons/bike.png" />
     <meta property="og:type" content="article" />
     <meta property="article:published_time" content="2020-01-19T11:51:23+08:00" />
-    <meta property="article:modified_time" content="2020-01-20T15:30:59+08:00" />
+    <meta property="article:modified_time" content="2020-03-02T14:09:18+08:00" />
     
     <meta property="article:section" content="posts" />
     <meta property="article:tag" content="技术笔记, golang, gin" />
@@ -234,7 +234,7 @@
     
     
         
-        <time datetime="2020-01-20T15:30:59+08:00" class="post-meta-item modified"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" class="icon post-meta-icon"><path d="M400 64h-48V12c0-6.627-5.373-12-12-12h-40c-6.627 0-12 5.373-12 12v52H160V12c0-6.627-5.373-12-12-12h-40c-6.627 0-12 5.373-12 12v52H48C21.49 64 0 85.49 0 112v352c0 26.51 21.49 48 48 48h352c26.51 0 48-21.49 48-48V112c0-26.51-21.49-48-48-48zm-6 400H54a6 6 0 0 1-6-6V160h352v298a6 6 0 0 1-6 6zm-52.849-200.65L198.842 404.519c-4.705 4.667-12.303 4.637-16.971-.068l-75.091-75.699c-4.667-4.705-4.637-12.303.068-16.971l22.719-22.536c4.705-4.667 12.303-4.637 16.97.069l44.104 44.461 111.072-110.181c4.705-4.667 12.303-4.637 16.971.068l22.536 22.718c4.667 4.705 4.636 12.303-.069 16.97z"/></svg>&nbsp;2020.1.20</time>
+        <time datetime="2020-03-02T14:09:18+08:00" class="post-meta-item modified"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" class="icon post-meta-icon"><path d="M400 64h-48V12c0-6.627-5.373-12-12-12h-40c-6.627 0-12 5.373-12 12v52H160V12c0-6.627-5.373-12-12-12h-40c-6.627 0-12 5.373-12 12v52H48C21.49 64 0 85.49 0 112v352c0 26.51 21.49 48 48 48h352c26.51 0 48-21.49 48-48V112c0-26.51-21.49-48-48-48zm-6 400H54a6 6 0 0 1-6-6V160h352v298a6 6 0 0 1-6 6zm-52.849-200.65L198.842 404.519c-4.705 4.667-12.303 4.637-16.971-.068l-75.091-75.699c-4.667-4.705-4.637-12.303.068-16.971l22.719-22.536c4.705-4.667 12.303-4.637 16.97.069l44.104 44.461 111.072-110.181c4.705-4.667 12.303-4.637 16.971.068l22.536 22.718c4.667 4.705 4.636 12.303-.069 16.97z"/></svg>&nbsp;2020.3.2</time>
     
     
     
@@ -285,11 +285,11 @@
 
 <span class="kn">import</span> <span class="s">&#34;github.com/gin-gonic/gin&#34;</span>
 
-<span class="kd">func</span> <span class="nf">main</span><span class="p">(</span><span class="p">)</span> <span class="p">{</span>
+<span class="kd">func</span> <span class="nf">main</span><span class="p">()</span> <span class="p">{</span>
 	<span class="c1">// 最简单的HTTP服务监听
-</span><span class="c1"></span>	<span class="nx">engine</span> <span class="o">:=</span> <span class="nx">gin</span><span class="p">.</span><span class="nf">Default</span><span class="p">(</span><span class="p">)</span>
-	<span class="nx">engine</span><span class="p">.</span><span class="nf">GET</span><span class="p">(</span><span class="s">&#34;/health&#34;</span><span class="p">,</span> <span class="kd">func</span><span class="p">(</span><span class="nx">c</span> <span class="o">*</span><span class="nx">gin</span><span class="p">.</span><span class="nx">Context</span><span class="p">)</span> <span class="p">{</span> <span class="nx">c</span><span class="p">.</span><span class="nf">JSON</span><span class="p">(</span><span class="mi">200</span><span class="p">,</span> <span class="s">&#34;ok&#34;</span><span class="p">)</span> <span class="p">}</span><span class="p">)</span>
-	<span class="k">if</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">engine</span><span class="p">.</span><span class="nf">Run</span><span class="p">(</span><span class="s">&#34;:8080&#34;</span><span class="p">)</span><span class="p">;</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+</span><span class="c1"></span>	<span class="nx">engine</span> <span class="o">:=</span> <span class="nx">gin</span><span class="p">.</span><span class="nf">Default</span><span class="p">()</span>
+	<span class="nx">engine</span><span class="p">.</span><span class="nf">GET</span><span class="p">(</span><span class="s">&#34;/health&#34;</span><span class="p">,</span> <span class="kd">func</span><span class="p">(</span><span class="nx">c</span> <span class="o">*</span><span class="nx">gin</span><span class="p">.</span><span class="nx">Context</span><span class="p">)</span> <span class="p">{</span> <span class="nx">c</span><span class="p">.</span><span class="nf">JSON</span><span class="p">(</span><span class="mi">200</span><span class="p">,</span> <span class="s">&#34;ok&#34;</span><span class="p">)</span> <span class="p">})</span>
+	<span class="k">if</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">engine</span><span class="p">.</span><span class="nf">Run</span><span class="p">(</span><span class="s">&#34;:8080&#34;</span><span class="p">);</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
 		<span class="nb">panic</span><span class="p">(</span><span class="nx">err</span><span class="p">)</span>
 	<span class="p">}</span>
 <span class="p">}</span>
@@ -311,13 +311,13 @@
 </span><span class="lnt">9
 </span></code></pre></td>
 <td class="lntd">
-<pre class="chroma"><code class="language-go" data-lang="go"><span class="kd">func</span> <span class="nf">Default</span><span class="p">(</span><span class="p">)</span> <span class="o">*</span><span class="nx">Engine</span> <span class="p">{</span>
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="kd">func</span> <span class="nf">Default</span><span class="p">()</span> <span class="o">*</span><span class="nx">Engine</span> <span class="p">{</span>
 	<span class="c1">// 监测当前运行环境(go version)，给出建议及提醒, 仅 gin debug 环境下输出
-</span><span class="c1"></span>	<span class="nf">debugPrintWARNINGDefault</span><span class="p">(</span><span class="p">)</span>
+</span><span class="c1"></span>	<span class="nf">debugPrintWARNINGDefault</span><span class="p">()</span>
 	<span class="c1">// 初始化Engine结构体
-</span><span class="c1"></span>	<span class="nx">engine</span> <span class="o">:=</span> <span class="nf">New</span><span class="p">(</span><span class="p">)</span>
+</span><span class="c1"></span>	<span class="nx">engine</span> <span class="o">:=</span> <span class="nf">New</span><span class="p">()</span>
 	<span class="c1">// 使用一个日志中间件，recovery()在单个goroutine捕获接下来处理的异常，防止主进程异常退出
-</span><span class="c1"></span>	<span class="nx">engine</span><span class="p">.</span><span class="nf">Use</span><span class="p">(</span><span class="nf">Logger</span><span class="p">(</span><span class="p">)</span><span class="p">,</span> <span class="nf">Recovery</span><span class="p">(</span><span class="p">)</span><span class="p">)</span>
+</span><span class="c1"></span>	<span class="nx">engine</span><span class="p">.</span><span class="nf">Use</span><span class="p">(</span><span class="nf">Logger</span><span class="p">(),</span> <span class="nf">Recovery</span><span class="p">())</span>
 	<span class="k">return</span> <span class="nx">engine</span>
 <span class="p">}</span>
 </code></pre></td></tr></table>
@@ -437,15 +437,15 @@
 <span class="p">}</span>
 
 <span class="c1">// 可以看到对 Engine 的默认值进行处理
-</span><span class="c1"></span><span class="kd">func</span> <span class="nf">New</span><span class="p">(</span><span class="p">)</span> <span class="o">*</span><span class="nx">Engine</span> <span class="p">{</span>
-	<span class="nf">debugPrintWARNINGNew</span><span class="p">(</span><span class="p">)</span>
+</span><span class="c1"></span><span class="kd">func</span> <span class="nf">New</span><span class="p">()</span> <span class="o">*</span><span class="nx">Engine</span> <span class="p">{</span>
+	<span class="nf">debugPrintWARNINGNew</span><span class="p">()</span>
 	<span class="nx">engine</span> <span class="o">:=</span> <span class="o">&amp;</span><span class="nx">Engine</span><span class="p">{</span>
 		<span class="nx">RouterGroup</span><span class="p">:</span> <span class="nx">RouterGroup</span><span class="p">{</span>
 			<span class="nx">Handlers</span><span class="p">:</span> <span class="kc">nil</span><span class="p">,</span>
 			<span class="nx">basePath</span><span class="p">:</span> <span class="s">&#34;/&#34;</span><span class="p">,</span>
 			<span class="nx">root</span><span class="p">:</span>     <span class="kc">true</span><span class="p">,</span>
-		<span class="p">}</span><span class="p">,</span>
-		<span class="nx">FuncMap</span><span class="p">:</span>                <span class="nx">template</span><span class="p">.</span><span class="nx">FuncMap</span><span class="p">{</span><span class="p">}</span><span class="p">,</span>
+		<span class="p">},</span>
+		<span class="nx">FuncMap</span><span class="p">:</span>                <span class="nx">template</span><span class="p">.</span><span class="nx">FuncMap</span><span class="p">{},</span>
 		<span class="nx">RedirectTrailingSlash</span><span class="p">:</span>  <span class="kc">true</span><span class="p">,</span>
 		<span class="nx">RedirectFixedPath</span><span class="p">:</span>      <span class="kc">false</span><span class="p">,</span>
 		<span class="nx">HandleMethodNotAllowed</span><span class="p">:</span> <span class="kc">false</span><span class="p">,</span>
@@ -454,14 +454,14 @@
 		<span class="nx">UseRawPath</span><span class="p">:</span>             <span class="kc">false</span><span class="p">,</span>
 		<span class="nx">UnescapePathValues</span><span class="p">:</span>     <span class="kc">true</span><span class="p">,</span>
 		<span class="nx">MaxMultipartMemory</span><span class="p">:</span>     <span class="nx">defaultMultipartMemory</span><span class="p">,</span>
-		<span class="nx">trees</span><span class="p">:</span>                  <span class="nb">make</span><span class="p">(</span><span class="nx">methodTrees</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">9</span><span class="p">)</span><span class="p">,</span>
-		<span class="nx">delims</span><span class="p">:</span>                 <span class="nx">render</span><span class="p">.</span><span class="nx">Delims</span><span class="p">{</span><span class="nx">Left</span><span class="p">:</span> <span class="s">&#34;{{&#34;</span><span class="p">,</span> <span class="nx">Right</span><span class="p">:</span> <span class="s">&#34;}}&#34;</span><span class="p">}</span><span class="p">,</span>
+		<span class="nx">trees</span><span class="p">:</span>                  <span class="nb">make</span><span class="p">(</span><span class="nx">methodTrees</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">9</span><span class="p">),</span>
+		<span class="nx">delims</span><span class="p">:</span>                 <span class="nx">render</span><span class="p">.</span><span class="nx">Delims</span><span class="p">{</span><span class="nx">Left</span><span class="p">:</span> <span class="s">&#34;{{&#34;</span><span class="p">,</span> <span class="nx">Right</span><span class="p">:</span> <span class="s">&#34;}}&#34;</span><span class="p">},</span>
 		<span class="nx">secureJsonPrefix</span><span class="p">:</span>       <span class="s">&#34;while(1);&#34;</span><span class="p">,</span>
 	<span class="p">}</span>
 	<span class="nx">engine</span><span class="p">.</span><span class="nx">RouterGroup</span><span class="p">.</span><span class="nx">engine</span> <span class="p">=</span> <span class="nx">engine</span>
 	<span class="c1">// context pool 减少context重新申请带来的开销
-</span><span class="c1"></span>	<span class="nx">engine</span><span class="p">.</span><span class="nx">pool</span><span class="p">.</span><span class="nx">New</span> <span class="p">=</span> <span class="kd">func</span><span class="p">(</span><span class="p">)</span> <span class="kd">interface</span><span class="p">{</span><span class="p">}</span> <span class="p">{</span>
-		<span class="k">return</span> <span class="nx">engine</span><span class="p">.</span><span class="nf">allocateContext</span><span class="p">(</span><span class="p">)</span>
+</span><span class="c1"></span>	<span class="nx">engine</span><span class="p">.</span><span class="nx">pool</span><span class="p">.</span><span class="nx">New</span> <span class="p">=</span> <span class="kd">func</span><span class="p">()</span> <span class="kd">interface</span><span class="p">{}</span> <span class="p">{</span>
+		<span class="k">return</span> <span class="nx">engine</span><span class="p">.</span><span class="nf">allocateContext</span><span class="p">()</span>
 	<span class="p">}</span>
 	<span class="k">return</span> <span class="nx">engine</span>
 <span class="p">}</span>
@@ -514,12 +514,12 @@
 </span><span class="c1"></span>	<span class="nx">handlers</span> <span class="p">=</span> <span class="nx">group</span><span class="p">.</span><span class="nf">combineHandlers</span><span class="p">(</span><span class="nx">handlers</span><span class="p">)</span>
 	<span class="c1">// 在 methodTrees 此方法，此路由下，重置 handlers。
 </span><span class="c1"></span>	<span class="nx">group</span><span class="p">.</span><span class="nx">engine</span><span class="p">.</span><span class="nf">addRoute</span><span class="p">(</span><span class="nx">httpMethod</span><span class="p">,</span> <span class="nx">absolutePath</span><span class="p">,</span> <span class="nx">handlers</span><span class="p">)</span>
-	<span class="k">return</span> <span class="nx">group</span><span class="p">.</span><span class="nf">returnObj</span><span class="p">(</span><span class="p">)</span>
+	<span class="k">return</span> <span class="nx">group</span><span class="p">.</span><span class="nf">returnObj</span><span class="p">()</span>
 <span class="p">}</span>
 
 <span class="c1">// RouterGroup is used internally to configure router, a RouterGroup is associated with
-</span><span class="c1"></span><span class="c1">// a prefix and an array of handlers (middleware).
-</span><span class="c1"></span><span class="c1">// 路由匹配器
+</span><span class="c1">// a prefix and an array of handlers (middleware).
+</span><span class="c1">// 路由匹配器
 </span><span class="c1"></span><span class="kd">type</span> <span class="nx">RouterGroup</span> <span class="kd">struct</span> <span class="p">{</span>
 	<span class="c1">// 注册到此路由下的所有处理方法， []HandlerFunc （type HandlerFunc func(*Context)）
 </span><span class="c1"></span>	<span class="nx">Handlers</span> <span class="nx">HandlersChain</span>
@@ -551,7 +551,7 @@
 <td class="lntd">
 <pre class="chroma"><code class="language-go" data-lang="go"><span class="kd">func</span> <span class="p">(</span><span class="nx">engine</span> <span class="o">*</span><span class="nx">Engine</span><span class="p">)</span> <span class="nf">Run</span><span class="p">(</span><span class="nx">addr</span> <span class="o">...</span><span class="kt">string</span><span class="p">)</span> <span class="p">(</span><span class="nx">err</span> <span class="kt">error</span><span class="p">)</span> <span class="p">{</span>
 	<span class="c1">// 打印错误
-</span><span class="c1"></span>	<span class="k">defer</span> <span class="kd">func</span><span class="p">(</span><span class="p">)</span> <span class="p">{</span> <span class="nf">debugPrintError</span><span class="p">(</span><span class="nx">err</span><span class="p">)</span> <span class="p">}</span><span class="p">(</span><span class="p">)</span>
+</span><span class="c1"></span>	<span class="k">defer</span> <span class="kd">func</span><span class="p">()</span> <span class="p">{</span> <span class="nf">debugPrintError</span><span class="p">(</span><span class="nx">err</span><span class="p">)</span> <span class="p">}()</span>
 	<span class="c1">// 如果不传入地址，默认有一个监听端口
 </span><span class="c1"></span>	<span class="nx">address</span> <span class="o">:=</span> <span class="nf">resolveAddress</span><span class="p">(</span><span class="nx">addr</span><span class="p">)</span>
 	<span class="nf">debugPrint</span><span class="p">(</span><span class="s">&#34;Listening and serving HTTP on %s\n&#34;</span><span class="p">,</span> <span class="nx">address</span><span class="p">)</span>
@@ -657,21 +657,21 @@
 	<span class="s">&#34;github.com/gin-gonic/gin&#34;</span>
 <span class="p">)</span>
 
-<span class="kd">func</span> <span class="nf">main</span><span class="p">(</span><span class="p">)</span> <span class="p">{</span>
+<span class="kd">func</span> <span class="nf">main</span><span class="p">()</span> <span class="p">{</span>
 	<span class="kd">var</span> <span class="nx">engine</span> <span class="o">*</span><span class="nx">gin</span><span class="p">.</span><span class="nx">Engine</span>
 	<span class="k">if</span> <span class="nx">os</span><span class="p">.</span><span class="nf">Getenv</span><span class="p">(</span><span class="s">&#34;RUN_ENV&#34;</span><span class="p">)</span> <span class="o">==</span> <span class="s">&#34;release&#34;</span> <span class="p">{</span>
 		<span class="nx">gin</span><span class="p">.</span><span class="nf">SetMode</span><span class="p">(</span><span class="nx">gin</span><span class="p">.</span><span class="nx">ReleaseMode</span><span class="p">)</span>
-		<span class="nx">engine</span> <span class="p">=</span> <span class="nx">gin</span><span class="p">.</span><span class="nf">New</span><span class="p">(</span><span class="p">)</span>
+		<span class="nx">engine</span> <span class="p">=</span> <span class="nx">gin</span><span class="p">.</span><span class="nf">New</span><span class="p">()</span>
 		<span class="c1">// 注册一个全局recovery 防止因某个goroutine异常,导致主进程退出
 </span><span class="c1"></span>		<span class="c1">// 可采用自己的日志输出实现
 </span><span class="c1"></span>		<span class="c1">// SkipPaths []string 可添加，用于过滤health检查等Path
-</span><span class="c1"></span>		<span class="nx">engine</span><span class="p">.</span><span class="nf">Use</span><span class="p">(</span><span class="nx">gin</span><span class="p">.</span><span class="nf">Recovery</span><span class="p">(</span><span class="p">)</span><span class="p">)</span>
+</span><span class="c1"></span>		<span class="nx">engine</span><span class="p">.</span><span class="nf">Use</span><span class="p">(</span><span class="nx">gin</span><span class="p">.</span><span class="nf">Recovery</span><span class="p">())</span>
 	<span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
-		<span class="nx">engine</span> <span class="p">=</span> <span class="nx">gin</span><span class="p">.</span><span class="nf">Default</span><span class="p">(</span><span class="p">)</span>
+		<span class="nx">engine</span> <span class="p">=</span> <span class="nx">gin</span><span class="p">.</span><span class="nf">Default</span><span class="p">()</span>
 	<span class="p">}</span>
 
 	<span class="c1">// 可路由分组，后期介绍
-</span><span class="c1"></span>	<span class="nx">engine</span><span class="p">.</span><span class="nf">GET</span><span class="p">(</span><span class="s">&#34;/health&#34;</span><span class="p">,</span> <span class="kd">func</span><span class="p">(</span><span class="nx">c</span> <span class="o">*</span><span class="nx">gin</span><span class="p">.</span><span class="nx">Context</span><span class="p">)</span> <span class="p">{</span> <span class="nx">c</span><span class="p">.</span><span class="nf">JSON</span><span class="p">(</span><span class="mi">200</span><span class="p">,</span> <span class="s">&#34;ok&#34;</span><span class="p">)</span> <span class="p">}</span><span class="p">)</span>
+</span><span class="c1"></span>	<span class="nx">engine</span><span class="p">.</span><span class="nf">GET</span><span class="p">(</span><span class="s">&#34;/health&#34;</span><span class="p">,</span> <span class="kd">func</span><span class="p">(</span><span class="nx">c</span> <span class="o">*</span><span class="nx">gin</span><span class="p">.</span><span class="nx">Context</span><span class="p">)</span> <span class="p">{</span> <span class="nx">c</span><span class="p">.</span><span class="nf">JSON</span><span class="p">(</span><span class="mi">200</span><span class="p">,</span> <span class="s">&#34;ok&#34;</span><span class="p">)</span> <span class="p">})</span>
 
 	<span class="nx">srv</span> <span class="o">:=</span> <span class="nx">http</span><span class="p">.</span><span class="nx">Server</span><span class="p">{</span>
 		<span class="nx">Addr</span><span class="p">:</span>         <span class="s">&#34;:8080&#34;</span><span class="p">,</span>
@@ -681,19 +681,19 @@
 		<span class="nx">ErrorLog</span><span class="p">:</span>     <span class="kc">nil</span><span class="p">,</span> <span class="c1">// 可选日志
 </span><span class="c1"></span>	<span class="p">}</span>
 	<span class="c1">// 这里用 goroutine 包一下，当监听异常也可以不影响主进程
-</span><span class="c1"></span>	<span class="k">go</span> <span class="kd">func</span><span class="p">(</span><span class="p">)</span> <span class="p">{</span>
-		<span class="k">if</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">srv</span><span class="p">.</span><span class="nf">ListenAndServe</span><span class="p">(</span><span class="p">)</span><span class="p">;</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+</span><span class="c1"></span>	<span class="k">go</span> <span class="kd">func</span><span class="p">()</span> <span class="p">{</span>
+		<span class="k">if</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">srv</span><span class="p">.</span><span class="nf">ListenAndServe</span><span class="p">();</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
 			<span class="nb">panic</span><span class="p">(</span><span class="nx">err</span><span class="p">)</span>
 		<span class="p">}</span>
-	<span class="p">}</span><span class="p">(</span><span class="p">)</span>
+	<span class="p">}()</span>
 
 	<span class="c1">// 信号量, 用它柱塞主进程，对不同信号做出反应
-</span><span class="c1"></span>	<span class="nf">signalAccept</span><span class="p">(</span><span class="p">)</span>
+</span><span class="c1"></span>	<span class="nf">signalAccept</span><span class="p">()</span>
   <span class="c1">// 如果退出，在释放一些之前申请的资源，例如 db等。 db.Close()
 </span><span class="c1"></span>	<span class="nx">log</span><span class="p">.</span><span class="nf">Println</span><span class="p">(</span><span class="s">&#34;程序退出&#34;</span><span class="p">)</span>
 <span class="p">}</span>
 
-<span class="kd">func</span> <span class="nf">signalAccept</span><span class="p">(</span><span class="p">)</span> <span class="p">{</span>
+<span class="kd">func</span> <span class="nf">signalAccept</span><span class="p">()</span> <span class="p">{</span>
 	<span class="c1">// 不同的信号量不同的处理方式
 </span><span class="c1"></span>	<span class="nx">ch</span> <span class="o">:=</span> <span class="nb">make</span><span class="p">(</span><span class="kd">chan</span> <span class="nx">os</span><span class="p">.</span><span class="nx">Signal</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
 	<span class="nx">signal</span><span class="p">.</span><span class="nf">Notify</span><span class="p">(</span><span class="nx">ch</span><span class="p">,</span> <span class="nx">syscall</span><span class="p">.</span><span class="nx">SIGHUP</span><span class="p">,</span> <span class="nx">syscall</span><span class="p">.</span><span class="nx">SIGQUIT</span><span class="p">,</span> <span class="nx">syscall</span><span class="p">.</span><span class="nx">SIGTERM</span><span class="p">,</span> <span class="nx">syscall</span><span class="p">.</span><span class="nx">SIGINT</span><span class="p">)</span>
@@ -742,9 +742,9 @@
 
 
         
-    <div class="updated-badge-container"><div title="Updated @ 2020-01-20 15:30:59 CST" style="cursor:help;display:inline-block">
+    <div class="updated-badge-container"><div title="Updated @ 2020-03-02 14:09:18 CST" style="cursor:help;display:inline-block">
 
-<svg xmlns="http://www.w3.org/2000/svg" width="130" height="20" class="updated-badge"><linearGradient id="b" x2="0" y2="100%"><stop offset="0" stop-color="#bbb" stop-opacity=".1"/><stop offset="1" stop-opacity=".1"/></linearGradient><clipPath id="a"><rect width="130" height="20" rx="3" fill="#fff"/></clipPath><g clip-path="url(#a)"><path class="updated-badge-left" d="M0 0h55v20H0z"/><path class="updated-badge-right" d="M55 0h75v20H55z"/><path fill="url(#b)" d="M0 0h130v20H0z"/></g><g fill="#fff" text-anchor="middle" font-size="110"><text x="285" y="150" fill="#010101" fill-opacity=".3" textLength="450" transform="scale(.1)">updated</text><text x="285" y="140" textLength="450" transform="scale(.1)">updated</text><text x="915" y="150" fill="#010101" fill-opacity=".3" textLength="650" transform="scale(.1)">2020-01-20</text><text x="915" y="140" textLength="650" transform="scale(.1)">2020-01-20</text></g></svg></div></div>
+<svg xmlns="http://www.w3.org/2000/svg" width="130" height="20" class="updated-badge"><linearGradient id="b" x2="0" y2="100%"><stop offset="0" stop-color="#bbb" stop-opacity=".1"/><stop offset="1" stop-opacity=".1"/></linearGradient><clipPath id="a"><rect width="130" height="20" rx="3" fill="#fff"/></clipPath><g clip-path="url(#a)"><path class="updated-badge-left" d="M0 0h55v20H0z"/><path class="updated-badge-right" d="M55 0h75v20H55z"/><path fill="url(#b)" d="M0 0h130v20H0z"/></g><g fill="#fff" text-anchor="middle" font-size="110"><text x="285" y="150" fill="#010101" fill-opacity=".3" textLength="450" transform="scale(.1)">updated</text><text x="285" y="140" textLength="450" transform="scale(.1)">updated</text><text x="915" y="150" fill="#010101" fill-opacity=".3" textLength="650" transform="scale(.1)">2020-03-02</text><text x="915" y="140" textLength="650" transform="scale(.1)">2020-03-02</text></g></svg></div></div>
 
 
         
@@ -761,7 +761,7 @@
                     </li>
                 
                     <li class="related-item">
-                        <a href="/posts/gin/gin%E6%A6%82%E8%BF%B0%E5%8F%8A%E5%88%86%E6%9E%90%E7%9B%AE%E5%BD%95/" class="related-link">Golang-Gin WEB框架概述及分析目录</a>
+                        <a href="/posts/gin/gin-director-tree/" class="related-link">Golang-Gin WEB框架概述及分析目录</a>
                     </li>
                 
             </ul>
@@ -813,7 +813,7 @@
             
             
                 <li class="post-nav-next">
-                    <a href="/posts/gin/gin%E6%A6%82%E8%BF%B0%E5%8F%8A%E5%88%86%E6%9E%90%E7%9B%AE%E5%BD%95/" rel="next">Golang-Gin WEB框架概述及分析目录 ></a>
+                    <a href="/posts/gin/gin-director-tree/" rel="next">Golang-Gin WEB框架概述及分析目录 ></a>
                 </li>
             
         </ul>

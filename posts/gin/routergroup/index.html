@@ -43,7 +43,7 @@
     
     <meta name="renderer" content="webkit" />
 
-    <meta name="generator" content="Hugo 0.62.2" />
+    <meta name="generator" content="Hugo 0.65.3" />
 
     <title>Gin - RouterGroup 路由实现机制 | Sharing the life of words</title>
 
@@ -84,7 +84,7 @@
         "@context": "https://schema.org",
         "@type": "BlogPosting",
         "datePublished": "2020-01-20T15:29:23+08:00",
-        "dateModified": "2020-01-20T15:34:47+08:00",
+        "dateModified": "2020-03-02T14:09:18+08:00",
         "url": "https://www.huzhongqing.com/posts/gin/routergroup/",
         "headline": "Gin - RouterGroup 路由实现机制",
         "description": "凿不休则沟深，斧不止则薪多。——王充 路由实现，是Gin框架的核心，REST风格注册路由，RadixTree（基数树）路由匹配实现，也让寻址更加快。实现了http.Server.Handler接口。合理……",
@@ -141,7 +141,7 @@
 <meta property="og:locale" content="zh-CN" /><meta property="og:image" content="http://q48vqd7m4.bkt.clouddn.com/img/20200120140814.png" />
 <meta property="og:type" content="article" />
     <meta property="article:published_time" content="2020-01-20T15:29:23+08:00" />
-    <meta property="article:modified_time" content="2020-01-20T15:34:47+08:00" />
+    <meta property="article:modified_time" content="2020-03-02T14:09:18+08:00" />
     
     <meta property="article:section" content="posts" />
     <meta property="article:tag" content="技术笔记, golang, gin" />
@@ -235,7 +235,7 @@
     
     
         
-        <time datetime="2020-01-20T15:34:47+08:00" class="post-meta-item modified"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" class="icon post-meta-icon"><path d="M400 64h-48V12c0-6.627-5.373-12-12-12h-40c-6.627 0-12 5.373-12 12v52H160V12c0-6.627-5.373-12-12-12h-40c-6.627 0-12 5.373-12 12v52H48C21.49 64 0 85.49 0 112v352c0 26.51 21.49 48 48 48h352c26.51 0 48-21.49 48-48V112c0-26.51-21.49-48-48-48zm-6 400H54a6 6 0 0 1-6-6V160h352v298a6 6 0 0 1-6 6zm-52.849-200.65L198.842 404.519c-4.705 4.667-12.303 4.637-16.971-.068l-75.091-75.699c-4.667-4.705-4.637-12.303.068-16.971l22.719-22.536c4.705-4.667 12.303-4.637 16.97.069l44.104 44.461 111.072-110.181c4.705-4.667 12.303-4.637 16.971.068l22.536 22.718c4.667 4.705 4.636 12.303-.069 16.97z"/></svg>&nbsp;2020.1.20</time>
+        <time datetime="2020-03-02T14:09:18+08:00" class="post-meta-item modified"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" class="icon post-meta-icon"><path d="M400 64h-48V12c0-6.627-5.373-12-12-12h-40c-6.627 0-12 5.373-12 12v52H160V12c0-6.627-5.373-12-12-12h-40c-6.627 0-12 5.373-12 12v52H48C21.49 64 0 85.49 0 112v352c0 26.51 21.49 48 48 48h352c26.51 0 48-21.49 48-48V112c0-26.51-21.49-48-48-48zm-6 400H54a6 6 0 0 1-6-6V160h352v298a6 6 0 0 1-6 6zm-52.849-200.65L198.842 404.519c-4.705 4.667-12.303 4.637-16.971-.068l-75.091-75.699c-4.667-4.705-4.637-12.303.068-16.971l22.719-22.536c4.705-4.667 12.303-4.637 16.97.069l44.104 44.461 111.072-110.181c4.705-4.667 12.303-4.637 16.971.068l22.536 22.718c4.667 4.705 4.636 12.303-.069 16.97z"/></svg>&nbsp;2020.3.2</time>
     
     
     
@@ -297,7 +297,7 @@
 </span><span class="lnt">27
 </span></code></pre></td>
 <td class="lntd">
-<pre class="chroma"><code class="language-go" data-lang="go"><span class="kd">type</span> <span class="nx">methodTrees</span> <span class="p">[</span><span class="p">]</span><span class="nx">methodTree</span>	
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="kd">type</span> <span class="nx">methodTrees</span> <span class="p">[]</span><span class="nx">methodTree</span>	
 <span class="c1">// 每个请求方法后面对应一颗树(基树)
 </span><span class="c1"></span><span class="nx">trees</span>            <span class="nx">methodTrees</span>
 
@@ -316,7 +316,7 @@
 <span class="kd">type</span> <span class="nx">node</span> <span class="kd">struct</span> <span class="p">{</span>
 	<span class="nx">path</span>      <span class="kt">string</span> <span class="c1">// 当前节点相对路径（与祖先节点的 path 拼接可得到完整路径）
 </span><span class="c1"></span>	<span class="nx">indices</span>   <span class="kt">string</span> <span class="c1">// 所以孩子节点的path[0]组成的字符串
-</span><span class="c1"></span>	<span class="nx">children</span>  <span class="p">[</span><span class="p">]</span><span class="o">*</span><span class="nx">node</span> <span class="c1">// 子节点
+</span><span class="c1"></span>	<span class="nx">children</span>  <span class="p">[]</span><span class="o">*</span><span class="nx">node</span> <span class="c1">// 子节点
 </span><span class="c1"></span>	<span class="nx">handlers</span>  <span class="nx">HandlersChain</span> <span class="c1">// 当前节点处理函数
 </span><span class="c1"></span>	<span class="nx">priority</span>  <span class="kt">uint32</span> <span class="c1">// 当前节点及子孙节点的实际路由数量
 </span><span class="c1"></span>	<span class="nx">nType</span>     <span class="nx">nodeType</span> <span class="c1">// 节点类型
@@ -409,7 +409,7 @@
 </span><span class="c1"></span>	<span class="nx">handlers</span> <span class="p">=</span> <span class="nx">group</span><span class="p">.</span><span class="nf">combineHandlers</span><span class="p">(</span><span class="nx">handlers</span><span class="p">)</span>
 	<span class="c1">// 在 methodTrees 注册此路由，handlers = group.Handlers + handlers 
 </span><span class="c1"></span>	<span class="nx">group</span><span class="p">.</span><span class="nx">engine</span><span class="p">.</span><span class="nf">addRoute</span><span class="p">(</span><span class="nx">httpMethod</span><span class="p">,</span> <span class="nx">absolutePath</span><span class="p">,</span> <span class="nx">handlers</span><span class="p">)</span>
-	<span class="k">return</span> <span class="nx">group</span><span class="p">.</span><span class="nf">returnObj</span><span class="p">(</span><span class="p">)</span>
+	<span class="k">return</span> <span class="nx">group</span><span class="p">.</span><span class="nf">returnObj</span><span class="p">()</span>
 <span class="p">}</span>
 </code></pre></td></tr></table>
 </div>
@@ -453,38 +453,38 @@
 </span><span class="lnt">35
 </span></code></pre></td>
 <td class="lntd">
-<pre class="chroma"><code class="language-go" data-lang="go"><span class="kd">func</span> <span class="nf">main</span><span class="p">(</span><span class="p">)</span> <span class="p">{</span>
-	<span class="nx">engine</span> <span class="o">:=</span> <span class="nx">gin</span><span class="p">.</span><span class="nf">Default</span><span class="p">(</span><span class="p">)</span>
+<pre class="chroma"><code class="language-go" data-lang="go"><span class="kd">func</span> <span class="nf">main</span><span class="p">()</span> <span class="p">{</span>
+	<span class="nx">engine</span> <span class="o">:=</span> <span class="nx">gin</span><span class="p">.</span><span class="nf">Default</span><span class="p">()</span>
 	<span class="c1">// 这里 engine.GET 继承了 RouterGroup
-</span><span class="c1"></span>	<span class="nx">engine</span><span class="p">.</span><span class="nf">GET</span><span class="p">(</span><span class="s">&#34;/health&#34;</span><span class="p">,</span> <span class="kd">func</span><span class="p">(</span><span class="nx">c</span> <span class="o">*</span><span class="nx">gin</span><span class="p">.</span><span class="nx">Context</span><span class="p">)</span> <span class="p">{</span> <span class="nx">c</span><span class="p">.</span><span class="nf">String</span><span class="p">(</span><span class="mi">200</span><span class="p">,</span> <span class="s">&#34;ok&#34;</span><span class="p">)</span> <span class="p">}</span><span class="p">)</span>
+</span><span class="c1"></span>	<span class="nx">engine</span><span class="p">.</span><span class="nf">GET</span><span class="p">(</span><span class="s">&#34;/health&#34;</span><span class="p">,</span> <span class="kd">func</span><span class="p">(</span><span class="nx">c</span> <span class="o">*</span><span class="nx">gin</span><span class="p">.</span><span class="nx">Context</span><span class="p">)</span> <span class="p">{</span> <span class="nx">c</span><span class="p">.</span><span class="nf">String</span><span class="p">(</span><span class="mi">200</span><span class="p">,</span> <span class="s">&#34;ok&#34;</span><span class="p">)</span> <span class="p">})</span>
 	<span class="c1">// 如果我们有一组路由, 还是使用的 RouterGroup 暴露的方法
 </span><span class="c1"></span>	<span class="c1">// 为这个分组添加一个中间件, 等同于 v1.Use(...)
 </span><span class="c1"></span>	<span class="nx">v1</span> <span class="o">:=</span> <span class="nx">engine</span><span class="p">.</span><span class="nf">Group</span><span class="p">(</span><span class="s">&#34;/v1&#34;</span><span class="p">,</span> <span class="kd">func</span><span class="p">(</span><span class="nx">c</span> <span class="o">*</span><span class="nx">gin</span><span class="p">.</span><span class="nx">Context</span><span class="p">)</span> <span class="p">{</span>
 		<span class="nx">fmt</span><span class="p">.</span><span class="nf">Println</span><span class="p">(</span><span class="nx">c</span><span class="p">.</span><span class="nx">Request</span><span class="p">.</span><span class="nx">URL</span><span class="p">.</span><span class="nx">Path</span><span class="p">)</span>
-		<span class="nx">c</span><span class="p">.</span><span class="nf">Next</span><span class="p">(</span><span class="p">)</span>
-	<span class="p">}</span><span class="p">)</span>
+		<span class="nx">c</span><span class="p">.</span><span class="nf">Next</span><span class="p">()</span>
+	<span class="p">})</span>
 	<span class="nx">v1</span><span class="p">.</span><span class="nf">POST</span><span class="p">(</span><span class="s">&#34;/create&#34;</span><span class="p">,</span> <span class="kd">func</span><span class="p">(</span><span class="nx">c</span> <span class="o">*</span><span class="nx">gin</span><span class="p">.</span><span class="nx">Context</span><span class="p">)</span> <span class="p">{</span>
 		<span class="nx">fmt</span><span class="p">.</span><span class="nf">Println</span><span class="p">(</span><span class="s">&#34;create post router&#34;</span><span class="p">)</span>
 		<span class="nx">c</span><span class="p">.</span><span class="nf">Status</span><span class="p">(</span><span class="mi">200</span><span class="p">)</span>
-	<span class="p">}</span><span class="p">)</span>
+	<span class="p">})</span>
 
 	<span class="c1">// 进行分组隔离
 </span><span class="c1"></span>	<span class="nx">v2</span> <span class="o">:=</span> <span class="nx">engine</span><span class="p">.</span><span class="nf">Group</span><span class="p">(</span><span class="s">&#34;/v2&#34;</span><span class="p">)</span>
-	<span class="nx">auth</span> <span class="o">:=</span> <span class="kd">func</span><span class="p">(</span><span class="p">)</span> <span class="nx">gin</span><span class="p">.</span><span class="nx">HandlerFunc</span> <span class="p">{</span>
+	<span class="nx">auth</span> <span class="o">:=</span> <span class="kd">func</span><span class="p">()</span> <span class="nx">gin</span><span class="p">.</span><span class="nx">HandlerFunc</span> <span class="p">{</span>
 		<span class="k">return</span> <span class="kd">func</span><span class="p">(</span><span class="nx">c</span> <span class="o">*</span><span class="nx">gin</span><span class="p">.</span><span class="nx">Context</span><span class="p">)</span> <span class="p">{</span>
 			<span class="nx">user</span> <span class="o">:=</span> <span class="nx">c</span><span class="p">.</span><span class="nf">GetHeader</span><span class="p">(</span><span class="s">&#34;user&#34;</span><span class="p">)</span>
 			<span class="k">if</span> <span class="nx">user</span> <span class="o">==</span> <span class="s">&#34;&#34;</span> <span class="p">{</span>
-				<span class="nx">c</span><span class="p">.</span><span class="nf">Abort</span><span class="p">(</span><span class="p">)</span> <span class="c1">// 中断后续handler执行
+				<span class="nx">c</span><span class="p">.</span><span class="nf">Abort</span><span class="p">()</span> <span class="c1">// 中断后续handler执行
 </span><span class="c1"></span>				<span class="k">return</span>
 			<span class="p">}</span>
-			<span class="nx">c</span><span class="p">.</span><span class="nf">Next</span><span class="p">(</span><span class="p">)</span> <span class="c1">// 下一个handler执行
+			<span class="nx">c</span><span class="p">.</span><span class="nf">Next</span><span class="p">()</span> <span class="c1">// 下一个handler执行
 </span><span class="c1"></span>		<span class="p">}</span>
 	<span class="p">}</span>
 	<span class="c1">// 添加一个 auth 验证的中间件
-</span><span class="c1"></span>	<span class="nx">v2</span><span class="p">.</span><span class="nf">GET</span><span class="p">(</span><span class="s">&#34;/:name&#34;</span><span class="p">,</span> <span class="nf">auth</span><span class="p">(</span><span class="p">)</span><span class="p">,</span> <span class="kd">func</span><span class="p">(</span><span class="nx">c</span> <span class="o">*</span><span class="nx">gin</span><span class="p">.</span><span class="nx">Context</span><span class="p">)</span> <span class="p">{</span>
+</span><span class="c1"></span>	<span class="nx">v2</span><span class="p">.</span><span class="nf">GET</span><span class="p">(</span><span class="s">&#34;/:name&#34;</span><span class="p">,</span> <span class="nf">auth</span><span class="p">(),</span> <span class="kd">func</span><span class="p">(</span><span class="nx">c</span> <span class="o">*</span><span class="nx">gin</span><span class="p">.</span><span class="nx">Context</span><span class="p">)</span> <span class="p">{</span>
 		<span class="nx">name</span> <span class="o">:=</span> <span class="nx">c</span><span class="p">.</span><span class="nf">Param</span><span class="p">(</span><span class="s">&#34;name&#34;</span><span class="p">)</span>
 		<span class="nx">c</span><span class="p">.</span><span class="nf">String</span><span class="p">(</span><span class="mi">200</span><span class="p">,</span> <span class="nx">name</span><span class="p">)</span>
-	<span class="p">}</span><span class="p">)</span>
+	<span class="p">})</span>
 
 	<span class="nx">_</span> <span class="p">=</span> <span class="nx">engine</span><span class="p">.</span><span class="nf">Run</span><span class="p">(</span><span class="s">&#34;:8080&#34;</span><span class="p">)</span>
 <span class="p">}</span>
@@ -518,11 +518,11 @@
 </span></code></pre></td>
 <td class="lntd">
 <pre class="chroma"><code class="language-go" data-lang="go"><span class="c1">// Group creates a new router group. You should add all the routes that have common middlewares or the same path prefix.
-</span><span class="c1"></span><span class="c1">// For example, all the routes that use a common middleware for authorization could be grouped.
+</span><span class="c1">// For example, all the routes that use a common middleware for authorization could be grouped.
 </span><span class="c1"></span><span class="kd">func</span> <span class="p">(</span><span class="nx">group</span> <span class="o">*</span><span class="nx">RouterGroup</span><span class="p">)</span> <span class="nf">Group</span><span class="p">(</span><span class="nx">relativePath</span> <span class="kt">string</span><span class="p">,</span> <span class="nx">handlers</span> <span class="o">...</span><span class="nx">HandlerFunc</span><span class="p">)</span> <span class="o">*</span><span class="nx">RouterGroup</span> <span class="p">{</span>
 	<span class="k">return</span> <span class="o">&amp;</span><span class="nx">RouterGroup</span><span class="p">{</span>
-		<span class="nx">Handlers</span><span class="p">:</span> <span class="nx">group</span><span class="p">.</span><span class="nf">combineHandlers</span><span class="p">(</span><span class="nx">handlers</span><span class="p">)</span><span class="p">,</span>
-		<span class="nx">basePath</span><span class="p">:</span> <span class="nx">group</span><span class="p">.</span><span class="nf">calculateAbsolutePath</span><span class="p">(</span><span class="nx">relativePath</span><span class="p">)</span><span class="p">,</span>
+		<span class="nx">Handlers</span><span class="p">:</span> <span class="nx">group</span><span class="p">.</span><span class="nf">combineHandlers</span><span class="p">(</span><span class="nx">handlers</span><span class="p">),</span>
+		<span class="nx">basePath</span><span class="p">:</span> <span class="nx">group</span><span class="p">.</span><span class="nf">calculateAbsolutePath</span><span class="p">(</span><span class="nx">relativePath</span><span class="p">),</span>
 		<span class="nx">engine</span><span class="p">:</span>   <span class="nx">group</span><span class="p">.</span><span class="nx">engine</span><span class="p">,</span>
 	<span class="p">}</span>
 <span class="p">}</span>
@@ -530,10 +530,10 @@
 <span class="c1">// ServeHTTP conforms to the http.Handler interface.
 </span><span class="c1"></span><span class="kd">func</span> <span class="p">(</span><span class="nx">engine</span> <span class="o">*</span><span class="nx">Engine</span><span class="p">)</span> <span class="nf">ServeHTTP</span><span class="p">(</span><span class="nx">w</span> <span class="nx">http</span><span class="p">.</span><span class="nx">ResponseWriter</span><span class="p">,</span> <span class="nx">req</span> <span class="o">*</span><span class="nx">http</span><span class="p">.</span><span class="nx">Request</span><span class="p">)</span> <span class="p">{</span>
 	<span class="c1">// 临时对象池，减少开销
-</span><span class="c1"></span>  <span class="nx">c</span> <span class="o">:=</span> <span class="nx">engine</span><span class="p">.</span><span class="nx">pool</span><span class="p">.</span><span class="nf">Get</span><span class="p">(</span><span class="p">)</span><span class="p">.</span><span class="p">(</span><span class="o">*</span><span class="nx">Context</span><span class="p">)</span>
+</span><span class="c1"></span>  <span class="nx">c</span> <span class="o">:=</span> <span class="nx">engine</span><span class="p">.</span><span class="nx">pool</span><span class="p">.</span><span class="nf">Get</span><span class="p">().(</span><span class="o">*</span><span class="nx">Context</span><span class="p">)</span>
 	<span class="nx">c</span><span class="p">.</span><span class="nx">writermem</span><span class="p">.</span><span class="nf">reset</span><span class="p">(</span><span class="nx">w</span><span class="p">)</span>
 	<span class="nx">c</span><span class="p">.</span><span class="nx">Request</span> <span class="p">=</span> <span class="nx">req</span>
-	<span class="nx">c</span><span class="p">.</span><span class="nf">reset</span><span class="p">(</span><span class="p">)</span>
+	<span class="nx">c</span><span class="p">.</span><span class="nf">reset</span><span class="p">()</span>
 	<span class="c1">// 路由匹配，并处理 handlers
 </span><span class="c1"></span>	<span class="nx">engine</span><span class="p">.</span><span class="nf">handleHTTPRequest</span><span class="p">(</span><span class="nx">c</span><span class="p">)</span>
 
@@ -564,7 +564,7 @@
 	<span class="p">}</span>
 	<span class="nx">mergedHandlers</span> <span class="o">:=</span> <span class="nb">make</span><span class="p">(</span><span class="nx">HandlersChain</span><span class="p">,</span> <span class="nx">finalSize</span><span class="p">)</span>
 	<span class="nb">copy</span><span class="p">(</span><span class="nx">mergedHandlers</span><span class="p">,</span> <span class="nx">group</span><span class="p">.</span><span class="nx">Handlers</span><span class="p">)</span>
-	<span class="nb">copy</span><span class="p">(</span><span class="nx">mergedHandlers</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="nx">group</span><span class="p">.</span><span class="nx">Handlers</span><span class="p">)</span><span class="p">:</span><span class="p">]</span><span class="p">,</span> <span class="nx">handlers</span><span class="p">)</span>
+	<span class="nb">copy</span><span class="p">(</span><span class="nx">mergedHandlers</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="nx">group</span><span class="p">.</span><span class="nx">Handlers</span><span class="p">):],</span> <span class="nx">handlers</span><span class="p">)</span>
 	<span class="k">return</span> <span class="nx">mergedHandlers</span>
 <span class="p">}</span>
 </code></pre></td></tr></table>
@@ -598,9 +598,9 @@
 
 
         
-    <div class="updated-badge-container"><div title="Updated @ 2020-01-20 15:34:47 CST" style="cursor:help;display:inline-block">
+    <div class="updated-badge-container"><div title="Updated @ 2020-03-02 14:09:18 CST" style="cursor:help;display:inline-block">
 
-<svg xmlns="http://www.w3.org/2000/svg" width="130" height="20" class="updated-badge"><linearGradient id="b" x2="0" y2="100%"><stop offset="0" stop-color="#bbb" stop-opacity=".1"/><stop offset="1" stop-opacity=".1"/></linearGradient><clipPath id="a"><rect width="130" height="20" rx="3" fill="#fff"/></clipPath><g clip-path="url(#a)"><path class="updated-badge-left" d="M0 0h55v20H0z"/><path class="updated-badge-right" d="M55 0h75v20H55z"/><path fill="url(#b)" d="M0 0h130v20H0z"/></g><g fill="#fff" text-anchor="middle" font-size="110"><text x="285" y="150" fill="#010101" fill-opacity=".3" textLength="450" transform="scale(.1)">updated</text><text x="285" y="140" textLength="450" transform="scale(.1)">updated</text><text x="915" y="150" fill="#010101" fill-opacity=".3" textLength="650" transform="scale(.1)">2020-01-20</text><text x="915" y="140" textLength="650" transform="scale(.1)">2020-01-20</text></g></svg></div></div>
+<svg xmlns="http://www.w3.org/2000/svg" width="130" height="20" class="updated-badge"><linearGradient id="b" x2="0" y2="100%"><stop offset="0" stop-color="#bbb" stop-opacity=".1"/><stop offset="1" stop-opacity=".1"/></linearGradient><clipPath id="a"><rect width="130" height="20" rx="3" fill="#fff"/></clipPath><g clip-path="url(#a)"><path class="updated-badge-left" d="M0 0h55v20H0z"/><path class="updated-badge-right" d="M55 0h75v20H55z"/><path fill="url(#b)" d="M0 0h130v20H0z"/></g><g fill="#fff" text-anchor="middle" font-size="110"><text x="285" y="150" fill="#010101" fill-opacity=".3" textLength="450" transform="scale(.1)">updated</text><text x="285" y="140" textLength="450" transform="scale(.1)">updated</text><text x="915" y="150" fill="#010101" fill-opacity=".3" textLength="650" transform="scale(.1)">2020-03-02</text><text x="915" y="140" textLength="650" transform="scale(.1)">2020-03-02</text></g></svg></div></div>
 
 
         
@@ -617,7 +617,7 @@
                     </li>
                 
                     <li class="related-item">
-                        <a href="/posts/gin/gin%E6%A6%82%E8%BF%B0%E5%8F%8A%E5%88%86%E6%9E%90%E7%9B%AE%E5%BD%95/" class="related-link">Golang-Gin WEB框架概述及分析目录</a>
+                        <a href="/posts/gin/gin-director-tree/" class="related-link">Golang-Gin WEB框架概述及分析目录</a>
                     </li>
                 
             </ul>
