@@ -4,7 +4,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom" xml:lang="zh-CN">
     <title type="text">Sharing the life of words</title>
     <subtitle type="html">生活笔记</subtitle>
-    <updated>2020-03-02T15:57:37+08:00</updated>
+    <updated>2020-03-02T17:01:32+08:00</updated>
     <id>https://www.huzhongqing.com/</id>
     <link rel="alternate" type="text/html" href="https://www.huzhongqing.com/" />
     <link rel="self" type="application/atom+xml" href="https://www.huzhongqing.com/atom.xml" />
@@ -16,6 +16,105 @@
             </author>
     <rights>[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)</rights>
     <generator uri="https://gohugo.io/" version="0.65.3">Hugo</generator>
+        <entry>
+            <title type="text">Hugo 引发SRI初识</title>
+            <link rel="alternate" type="text/html" href="https://www.huzhongqing.com/posts/other/sri/" />
+            <id>https://www.huzhongqing.com/posts/other/sri/</id>
+            <updated>2020-03-02T17:00:56+08:00</updated>
+            <published>2020-03-02T15:56:22+08:00</published>
+            <author>
+                    <name>huzhongqing</name>
+                    <uri>https://www.huzhongqing.com/</uri>
+                    <email>zhongqing2016@qq.com</email>
+                    </author>
+            <rights>[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)</rights>
+    
+    <summary type="html"><![CDATA[最近迁移到Windows平台时，在使用 hugo 构建模板的过程中，使用 hugo server 后打开测试连接时，发现CSS加载不出来，并报错如下: 1 Failed to find a valid digest in the 'integrity' attribute for resource 'xxx' with computed SHA-256 integrity 'xxx'. The resource has been blocked. 通过关键词 integrity 查询与 SRI (Subresource Integrity) 子资源完整……]]></summary>
+            
+                <content type="html"><![CDATA[<p>最近迁移到Windows平台时，在使用 hugo 构建模板的过程中，使用 hugo server 后打开测试连接时，发现CSS加载不出来，并报错如下:</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-text" data-lang="text">Failed to find a valid digest in the &#39;integrity&#39; attribute for resource &#39;xxx&#39; with computed SHA-256 integrity &#39;xxx&#39;. The resource has been blocked.
+</code></pre></td></tr></table>
+</div>
+</div><p>通过关键词 integrity 查询与 SRI (Subresource Integrity) 子资源完整性有关系。为什么hugo会引发呢？我的模板有个配置项是关闭SRI，我设置关闭后，hugo又报如下错误： <a href="https://gohugo.io/troubleshooting/faq/">hugo问题描述</a></p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-text" data-lang="text">error: failed to transform resource: TOCSS: failed to transform &#34;scss/main.scss&#34; (text/x-scss): this feature is not available in your current Hugo version
+</code></pre></td></tr></table>
+</div>
+</div><p>所以最后我去下载了hugo的 <a href="https://github.com/gohugoio/hugo/releases">extended</a> 扩展版本解决问题。</p>
+<h2 id="sri-是什么能干什么注意点">SRI 是什么？能干什么？注意点？</h2>
+<h3 id="是什么">是什么？</h3>
+<p>是一项Web安全领域的保证<strong>子资源完整性</strong>的实施<a href="https://github.blog/2015-09-19-subresource-integrity/">方案</a>。目前支持的浏览器有 Chrome 45+ FireFox43+</p>
+<h3 id="能干什么">能干什么？</h3>
+<p>网站性能优化方案，常会把js、css等资源选择走CDN缓存，因为CDN服务商会在各地方部署节点，客户端访问时多数情况就在本地的地点获取到了资源，减少了路由跳转等。这样可以大幅度提升页面响应速度。这时我们的资源获取经过了第三方服务器，但是怎么保证自己部署的文件未被篡改呢？</p>
+<p>对文件进行内容进行签名，浏览器加载的时候去验证签名。签名一致再加载内容。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-html" data-lang="html"><span class="p">&lt;</span><span class="nt">script</span> <span class="na">crossorigin</span><span class="o">=</span><span class="s">&#34;anonymous&#34;</span> <span class="na">integrity</span><span class="o">=</span><span class="s">&#34;sha256-+Ec97OckLaaiDVIxNjSIGzl1xSzrqh5sOBV8DcccpE=&#34;</span> <span class="na">src</span><span class="o">=</span><span class="s">&#34;https://cdn.jsdelivr.net/gh/cferdinandi/smooth-scroll/dist/smooth-scroll.polyfills.min.js&#34;</span><span class="p">&gt;&lt;/</span><span class="nt">script</span><span class="p">&gt;</span>
+</code></pre></td></tr></table>
+</div>
+</div><p>integrity 标签属性就是我们的签名信息，对 src 的资源进行 sha256 签名后得到计算结果。</p>
+<h3 id="注意点">注意点</h3>
+<ol>
+<li>但是开启了SRI后，浏览器会对资源进行<a href="https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Access_control_CORS">CORS校验</a>, 注意同域或者设置 Access-Control-Allow-Origin 响应头。</li>
+<li>如果我们网页与CDN都为使用HTTPS，那么运营商可以截取整个HTML页面本身，那么他就可以修改 integrity 这个标签属性，所以此时SRI就失效了。</li>
+<li>如果文件被篡改，此时就会整个文件无法执行，从而使页面不可用。为了预防此情况，可以在加载资源的时候发现CDN资源不可用时，直接回源请求。</li>
+</ol>
+]]></content>
+            
+            
+            
+            
+            
+                
+                    
+                        
+                            
+                            
+                            
+                                <category scheme="https://www.huzhongqing.com/categories/%E6%8A%80%E6%9C%AF%E7%AC%94%E8%AE%B0/" term="技术笔记" label="技术笔记" />
+                            
+                        
+                    
+                
+                    
+                
+                    
+                        
+                            
+                            
+                            
+                                <category scheme="https://www.huzhongqing.com/tags/hugo/" term="hugo" label="hugo" />
+                            
+                        
+                            
+                            
+                            
+                                <category scheme="https://www.huzhongqing.com/tags/sri/" term="sri" label="sri" />
+                            
+                        
+                            
+                            
+                            
+                                <category scheme="https://www.huzhongqing.com/tags/integrity/" term="integrity" label="integrity" />
+                            
+                        
+                    
+                
+            
+        </entry>
+    
         <entry>
             <title type="text">Gin - RouterGroup 路由实现机制</title>
             <link rel="alternate" type="text/html" href="https://www.huzhongqing.com/posts/gin/routergroup/" />
