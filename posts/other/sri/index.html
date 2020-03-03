@@ -54,7 +54,7 @@
     <meta name="author" content="huzhongqing" />
     
     
-    <meta name="description" content="最近迁移到Windows平台时，在使用 hugo 构建模板的过程中，使用 hugo server 后打开测试连接时，发现CSS加载不出来，并报错如下: 1 Failed to find a valid digest in the &amp;#39;integrity&amp;#39; attribute for resource &amp;#39;xxx&amp;#39; with computed SHA-256 integrity &amp;#39;xxx&amp;#39;. The resource has been blocked. 通过关键词 integrity 查询与 SRI (Subresource Integrity) 子资源完整……" />
+    <meta name="description" content="最近迁移到Windows平台时，在使用 hugo 构建模板的过程中，使用 hugo server 后打开测试连接时，发现CSS加载不出来，并报错如下: 1 2 Failed to find a valid digest in the &amp;#39;integrity&amp;#39; attribute for resource &amp;#39;xxx&amp;#39; with computed SHA-256 integrity &amp;#39;xxx&amp;#39;. The resource has been blocked. 通过关键词 integrity 查询与 SRI (Subresource Integrity) 子资源完……" />
     <meta name="keywords" content="技术笔记, hugo, sri, integrity" />
     
     <link rel="shortcut icon" type="image/ico" href="/favicon.ico" />
@@ -84,14 +84,14 @@
         "@context": "https://schema.org",
         "@type": "BlogPosting",
         "datePublished": "2020-03-02T15:56:22+08:00",
-        "dateModified": "2020-03-02T17:00:56+08:00",
+        "dateModified": "2020-03-03T09:40:09+08:00",
         "url": "https://www.huzhongqing.com/posts/other/sri/",
         "headline": "Hugo 引发SRI初识",
-        "description": "最近迁移到Windows平台时，在使用 hugo 构建模板的过程中，使用 hugo server 后打开测试连接时，发现CSS加载不出来，并报错如下: 1 Failed to find a valid digest in the \u0026#39;integrity\u0026#39; attribute for resource \u0026#39;xxx\u0026#39; with computed SHA-256 integrity \u0026#39;xxx\u0026#39;. The resource has been blocked. 通过关键词 integrity 查询与 SRI (Subresource Integrity) 子资源完整……",
+        "description": "最近迁移到Windows平台时，在使用 hugo 构建模板的过程中，使用 hugo server 后打开测试连接时，发现CSS加载不出来，并报错如下: 1 2 Failed to find a valid digest in the \u0026#39;integrity\u0026#39; attribute for resource \u0026#39;xxx\u0026#39; with computed SHA-256 integrity \u0026#39;xxx\u0026#39;. The resource has been blocked. 通过关键词 integrity 查询与 SRI (Subresource Integrity) 子资源完……",
         "keywords": "技术笔记, hugo, sri, integrity",
         "inLanguage" : "zh-CN",
         "articleSection": "posts",
-        "wordCount":  651 ,
+        "wordCount":  656 ,
         "image": "https://www.huzhongqing.com/icons/bike.png",
         "author": {
             "@type": "Person",
@@ -134,13 +134,13 @@
 
 
 <meta property="og:title" content="Hugo 引发SRI初识" />
-<meta property="og:description" content="最近迁移到Windows平台时，在使用 hugo 构建模板的过程中，使用 hugo server 后打开测试连接时，发现CSS加载不出来，并报错如下: 1 Failed to find a valid digest in the &amp;#39;integrity&amp;#39; attribute for resource &amp;#39;xxx&amp;#39; with computed SHA-256 integrity &amp;#39;xxx&amp;#39;. The resource has been blocked. 通过关键词 integrity 查询与 SRI (Subresource Integrity) 子资源完整……" />
+<meta property="og:description" content="最近迁移到Windows平台时，在使用 hugo 构建模板的过程中，使用 hugo server 后打开测试连接时，发现CSS加载不出来，并报错如下: 1 2 Failed to find a valid digest in the &amp;#39;integrity&amp;#39; attribute for resource &amp;#39;xxx&amp;#39; with computed SHA-256 integrity &amp;#39;xxx&amp;#39;. The resource has been blocked. 通过关键词 integrity 查询与 SRI (Subresource Integrity) 子资源完……" />
 <meta property="og:url" content="https://www.huzhongqing.com/posts/other/sri/" />
 <meta property="og:site_name" content="Sharing the life of words" />
 <meta property="og:locale" content="zh-CN" /><meta property="og:image" content="https://www.huzhongqing.com/icons/bike.png" />
     <meta property="og:type" content="article" />
     <meta property="article:published_time" content="2020-03-02T15:56:22+08:00" />
-    <meta property="article:modified_time" content="2020-03-02T17:00:56+08:00" />
+    <meta property="article:modified_time" content="2020-03-03T09:40:09+08:00" />
     
     <meta property="article:section" content="posts" />
     <meta property="article:tag" content="技术笔记, hugo, sri, integrity" />
@@ -234,7 +234,7 @@
     
     
         
-        <time datetime="2020-03-02T17:00:56+08:00" class="post-meta-item modified"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" class="icon post-meta-icon"><path d="M400 64h-48V12c0-6.627-5.373-12-12-12h-40c-6.627 0-12 5.373-12 12v52H160V12c0-6.627-5.373-12-12-12h-40c-6.627 0-12 5.373-12 12v52H48C21.49 64 0 85.49 0 112v352c0 26.51 21.49 48 48 48h352c26.51 0 48-21.49 48-48V112c0-26.51-21.49-48-48-48zm-6 400H54a6 6 0 0 1-6-6V160h352v298a6 6 0 0 1-6 6zm-52.849-200.65L198.842 404.519c-4.705 4.667-12.303 4.637-16.971-.068l-75.091-75.699c-4.667-4.705-4.637-12.303.068-16.971l22.719-22.536c4.705-4.667 12.303-4.637 16.97.069l44.104 44.461 111.072-110.181c4.705-4.667 12.303-4.637 16.971.068l22.536 22.718c4.667 4.705 4.636 12.303-.069 16.97z"/></svg>&nbsp;2020.3.2</time>
+        <time datetime="2020-03-03T09:40:09+08:00" class="post-meta-item modified"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" class="icon post-meta-icon"><path d="M400 64h-48V12c0-6.627-5.373-12-12-12h-40c-6.627 0-12 5.373-12 12v52H160V12c0-6.627-5.373-12-12-12h-40c-6.627 0-12 5.373-12 12v52H48C21.49 64 0 85.49 0 112v352c0 26.51 21.49 48 48 48h352c26.51 0 48-21.49 48-48V112c0-26.51-21.49-48-48-48zm-6 400H54a6 6 0 0 1-6-6V160h352v298a6 6 0 0 1-6 6zm-52.849-200.65L198.842 404.519c-4.705 4.667-12.303 4.637-16.971-.068l-75.091-75.699c-4.667-4.705-4.637-12.303.068-16.971l22.719-22.536c4.705-4.667 12.303-4.637 16.97.069l44.104 44.461 111.072-110.181c4.705-4.667 12.303-4.637 16.971.068l22.536 22.718c4.667 4.705 4.636 12.303-.069 16.97z"/></svg>&nbsp;2020.3.3</time>
     
     
     
@@ -249,7 +249,7 @@
     
     
         
-        <span class="post-meta-item wordcount"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="icon post-meta-icon"><path d="M497.9 142.1l-46.1 46.1c-4.7 4.7-12.3 4.7-17 0l-111-111c-4.7-4.7-4.7-12.3 0-17l46.1-46.1c18.7-18.7 49.1-18.7 67.9 0l60.1 60.1c18.8 18.7 18.8 49.1 0 67.9zM284.2 99.8L21.6 362.4.4 483.9c-2.9 16.4 11.4 30.6 27.8 27.8l121.5-21.3 262.6-262.6c4.7-4.7 4.7-12.3 0-17l-111-111c-4.8-4.7-12.4-4.7-17.1 0zM124.1 339.9c-5.5-5.5-5.5-14.3 0-19.8l154-154c5.5-5.5 14.3-5.5 19.8 0s5.5 14.3 0 19.8l-154 154c-5.5 5.5-14.3 5.5-19.8 0zM88 424h48v36.3l-64.5 11.3-31.1-31.1L51.7 376H88v48z"/></svg>&nbsp;651</span>
+        <span class="post-meta-item wordcount"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="icon post-meta-icon"><path d="M497.9 142.1l-46.1 46.1c-4.7 4.7-12.3 4.7-17 0l-111-111c-4.7-4.7-4.7-12.3 0-17l46.1-46.1c18.7-18.7 49.1-18.7 67.9 0l60.1 60.1c18.8 18.7 18.8 49.1 0 67.9zM284.2 99.8L21.6 362.4.4 483.9c-2.9 16.4 11.4 30.6 27.8 27.8l121.5-21.3 262.6-262.6c4.7-4.7 4.7-12.3 0-17l-111-111c-4.8-4.7-12.4-4.7-17.1 0zM124.1 339.9c-5.5-5.5-5.5-14.3 0-19.8l154-154c5.5-5.5 14.3-5.5 19.8 0s5.5 14.3 0 19.8l-154 154c-5.5 5.5-14.3 5.5-19.8 0zM88 424h48v36.3l-64.5 11.3-31.1-31.1L51.7 376H88v48z"/></svg>&nbsp;656</span>
     
     
         
@@ -263,18 +263,22 @@
 <div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">
 <pre class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
 </span></code></pre></td>
 <td class="lntd">
-<pre class="chroma"><code class="language-text" data-lang="text">Failed to find a valid digest in the &#39;integrity&#39; attribute for resource &#39;xxx&#39; with computed SHA-256 integrity &#39;xxx&#39;. The resource has been blocked.
+<pre class="chroma"><code class="language-text" data-lang="text">Failed to find a valid digest in the &#39;integrity&#39; attribute for resource &#39;xxx&#39;
+with computed SHA-256 integrity &#39;xxx&#39;. The resource has been blocked.
 </code></pre></td></tr></table>
 </div>
 </div><p>通过关键词 integrity 查询与 SRI (Subresource Integrity) 子资源完整性有关系。为什么hugo会引发呢？我的模板有个配置项是关闭SRI，我设置关闭后，hugo又报如下错误： <a href="https://gohugo.io/troubleshooting/faq/" target="_blank" rel="noopener">hugo问题描述</a></p>
 <div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">
 <pre class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
 </span></code></pre></td>
 <td class="lntd">
-<pre class="chroma"><code class="language-text" data-lang="text">error: failed to transform resource: TOCSS: failed to transform &#34;scss/main.scss&#34; (text/x-scss): this feature is not available in your current Hugo version
+<pre class="chroma"><code class="language-text" data-lang="text">error: failed to transform resource: TOCSS: failed to transform &#34;scss/main.scss&#34; (text/x-scss):
+this feature is not available in your current Hugo version
 </code></pre></td></tr></table>
 </div>
 </div><p>所以最后我去下载了hugo的 <a href="https://github.com/gohugoio/hugo/releases" target="_blank" rel="noopener">extended</a> 扩展版本解决问题。</p>
@@ -287,16 +291,20 @@
 <div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">
 <pre class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
 </span></code></pre></td>
 <td class="lntd">
-<pre class="chroma"><code class="language-html" data-lang="html"><span class="p">&lt;</span><span class="nt">script</span> <span class="na">crossorigin</span><span class="o">=</span><span class="s">&#34;anonymous&#34;</span> <span class="na">integrity</span><span class="o">=</span><span class="s">&#34;sha256-+Ec97OckLaaiDVIxNjSIGzl1xSzrqh5sOBV8DcccpE=&#34;</span> <span class="na">src</span><span class="o">=</span><span class="s">&#34;https://cdn.jsdelivr.net/gh/cferdinandi/smooth-scroll/dist/smooth-scroll.polyfills.min.js&#34;</span><span class="p">&gt;&lt;/</span><span class="nt">script</span><span class="p">&gt;</span>
+<pre class="chroma"><code class="language-html" data-lang="html"><span class="p">&lt;</span><span class="nt">script</span> <span class="na">crossorigin</span><span class="o">=</span><span class="s">&#34;anonymous&#34;</span> <span class="na">integrity</span><span class="o">=</span><span class="s">&#34;sha256-+Ec97OckLaaiDVIxNjSIGzl1xSzrqh5sOBV8DcccpE=&#34;</span> 
+    <span class="na">src</span><span class="o">=</span><span class="s">&#34;https://cdn.jsdelivr.net/gh/cferdinandi/smooth-scroll/dist/smooth-scroll.polyfills.min.js&#34;</span><span class="p">&gt;</span>
+<span class="p">&lt;/</span><span class="nt">script</span><span class="p">&gt;</span>
 </code></pre></td></tr></table>
 </div>
 </div><p>integrity 标签属性就是我们的签名信息，对 src 的资源进行 sha256 签名后得到计算结果。</p>
 <h3 id="注意点"><a href="#注意点" class="anchor-link"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="icon anchor-icon"><path d="M326.612 185.391c59.747 59.809 58.927 155.698.36 214.59-.11.12-.24.25-.36.37l-67.2 67.2c-59.27 59.27-155.699 59.262-214.96 0-59.27-59.26-59.27-155.7 0-214.96l37.106-37.106c9.84-9.84 26.786-3.3 27.294 10.606.648 17.722 3.826 35.527 9.69 52.721 1.986 5.822.567 12.262-3.783 16.612l-13.087 13.087c-28.026 28.026-28.905 73.66-1.155 101.96 28.024 28.579 74.086 28.749 102.325.51l67.2-67.19c28.191-28.191 28.073-73.757 0-101.83-3.701-3.694-7.429-6.564-10.341-8.569a16.037 16.037 0 0 1-6.947-12.606c-.396-10.567 3.348-21.456 11.698-29.806l21.054-21.055c5.521-5.521 14.182-6.199 20.584-1.731a152.482 152.482 0 0 1 20.522 17.197zM467.547 44.449c-59.261-59.262-155.69-59.27-214.96 0l-67.2 67.2c-.12.12-.25.25-.36.37-58.566 58.892-59.387 154.781.36 214.59a152.454 152.454 0 0 0 20.521 17.196c6.402 4.468 15.064 3.789 20.584-1.731l21.054-21.055c8.35-8.35 12.094-19.239 11.698-29.806a16.037 16.037 0 0 0-6.947-12.606c-2.912-2.005-6.64-4.875-10.341-8.569-28.073-28.073-28.191-73.639 0-101.83l67.2-67.19c28.239-28.239 74.3-28.069 102.325.51 27.75 28.3 26.872 73.934-1.155 101.96l-13.087 13.087c-4.35 4.35-5.769 10.79-3.783 16.612 5.864 17.194 9.042 34.999 9.69 52.721.509 13.906 17.454 20.446 27.294 10.606l37.106-37.106c59.271-59.259 59.271-155.699.001-214.959z"/></svg></a>注意点</h3>
 <ol>
 <li>但是开启了SRI后，浏览器会对资源进行<a href="https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Access_control_CORS" target="_blank" rel="noopener">CORS校验</a>, 注意同域或者设置 Access-Control-Allow-Origin 响应头。</li>
-<li>如果我们网页与CDN都为使用HTTPS，那么运营商可以截取整个HTML页面本身，那么他就可以修改 integrity 这个标签属性，所以此时SRI就失效了。</li>
+<li>如果我们网页与CDN都未使用HTTPS，那么运营商可以截取整个HTML页面本身，那么他就可以修改 integrity 这个标签属性，所以此时SRI就失效了。</li>
 <li>如果文件被篡改，此时就会整个文件无法执行，从而使页面不可用。为了预防此情况，可以在加载资源的时候发现CDN资源不可用时，直接回源请求。</li>
 </ol>
 </div>
@@ -325,9 +333,9 @@
 
 
         
-    <div class="updated-badge-container"><div title="Updated @ 2020-03-02 17:00:56 CST" style="cursor:help;display:inline-block">
+    <div class="updated-badge-container"><div title="Updated @ 2020-03-03 09:40:09 CST" style="cursor:help;display:inline-block">
 
-<svg xmlns="http://www.w3.org/2000/svg" width="130" height="20" class="updated-badge"><linearGradient id="b" x2="0" y2="100%"><stop offset="0" stop-color="#bbb" stop-opacity=".1"/><stop offset="1" stop-opacity=".1"/></linearGradient><clipPath id="a"><rect width="130" height="20" rx="3" fill="#fff"/></clipPath><g clip-path="url(#a)"><path class="updated-badge-left" d="M0 0h55v20H0z"/><path class="updated-badge-right" d="M55 0h75v20H55z"/><path fill="url(#b)" d="M0 0h130v20H0z"/></g><g fill="#fff" text-anchor="middle" font-size="110"><text x="285" y="150" fill="#010101" fill-opacity=".3" textLength="450" transform="scale(.1)">updated</text><text x="285" y="140" textLength="450" transform="scale(.1)">updated</text><text x="915" y="150" fill="#010101" fill-opacity=".3" textLength="650" transform="scale(.1)">2020-03-02</text><text x="915" y="140" textLength="650" transform="scale(.1)">2020-03-02</text></g></svg></div></div>
+<svg xmlns="http://www.w3.org/2000/svg" width="130" height="20" class="updated-badge"><linearGradient id="b" x2="0" y2="100%"><stop offset="0" stop-color="#bbb" stop-opacity=".1"/><stop offset="1" stop-opacity=".1"/></linearGradient><clipPath id="a"><rect width="130" height="20" rx="3" fill="#fff"/></clipPath><g clip-path="url(#a)"><path class="updated-badge-left" d="M0 0h55v20H0z"/><path class="updated-badge-right" d="M55 0h75v20H55z"/><path fill="url(#b)" d="M0 0h130v20H0z"/></g><g fill="#fff" text-anchor="middle" font-size="110"><text x="285" y="150" fill="#010101" fill-opacity=".3" textLength="450" transform="scale(.1)">updated</text><text x="285" y="140" textLength="450" transform="scale(.1)">updated</text><text x="915" y="150" fill="#010101" fill-opacity=".3" textLength="650" transform="scale(.1)">2020-03-03</text><text x="915" y="140" textLength="650" transform="scale(.1)">2020-03-03</text></g></svg></div></div>
 
 
         
