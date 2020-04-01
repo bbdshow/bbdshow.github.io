@@ -23,7 +23,7 @@
         
             <copyright>[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)</copyright>
         
-        <lastBuildDate>Tue, 03 Mar 2020 09:40:43 +0800</lastBuildDate>
+        <lastBuildDate>Wed, 01 Apr 2020 09:05:35 +0800</lastBuildDate>
         
             <atom:link rel="self" type="application/rss+xml" href="https://www.huzhongqing.com/rss.xml" />
         
@@ -1153,6 +1153,7 @@ Martini-like API风格，模块化设计，依赖注入带来使用便捷优势�
 </span><span class="lnt">17
 </span><span class="lnt">18
 </span><span class="lnt">19
+</span><span class="lnt">20
 </span></code></pre></td>
 <td class="lntd">
 <pre class="chroma"><code class="language-yaml" data-lang="yaml"><span class="k">version</span><span class="p">:</span><span class="w"> </span><span class="s1">&#39;3&#39;</span><span class="w">
@@ -1165,7 +1166,8 @@ Martini-like API风格，模块化设计，依赖注入带来使用便捷优势�
 </span><span class="w">    </span><span class="k">user</span><span class="p">:</span><span class="w"> </span>root<span class="w">
 </span><span class="w">    </span>volumes<span class="p">:</span><span class="w">
 </span><span class="w">      </span>- ${PWD}/data/prometheus<span class="p">:</span>/prometheus<span class="w">
-</span><span class="w">      </span>- ${PWD}/config/prometheus/prometheus.yml<span class="p">:</span>/etc/prometheus/prometheus.yml<span class="w">
+</span><span class="w">      </span><span class="c"># 这里配置文件，尽量挂载目录，因为在confd修改文件时，可以已经修改了文件的 inode 信息，导致文件不同步</span><span class="w">
+</span><span class="w">      </span>- ${PWD}/config/prometheus<span class="p">:</span>/etc/prometheus<span class="w">
 </span><span class="w">    </span>entrypoint<span class="p">:</span><span class="w">
 </span><span class="w">      </span>- /bin/prometheus<span class="w">
 </span><span class="w">      </span>- --config.file=/etc/prometheus/prometheus.yml<span class="w">
@@ -1371,7 +1373,7 @@ scrape_configs:
 {{end}}
 </code></pre><p>解释：</p>
 <ol>
-<li>提供一些内置函数，满足go template的<a href="https://golang.org/pkg/text/template/">模版语法</a></li>
+<li>提供一些内置函数，满足go template的<a href="https://golang.org/pkg/text/template/">模版语法</a>，如果为了满足自己的业务需求，尽可能先学习一下模板语法，结合etcd的kv结构构建数据，配置好就一劳永逸。</li>
 </ol>
 <h2 id="添加执行任务示例">添加执行任务示例</h2>
 <p>jobx 任务  subJobx 子任务模块</p>
