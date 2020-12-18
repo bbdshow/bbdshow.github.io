@@ -47,7 +47,7 @@
 
     <title>Sharing the life of words</title>
 
-    <link rel="stylesheet" href="/css/meme.min.2c20b5fbffabe4b87f89619bfc86be6edf318693184d6acb4318b03138f05d5e.css" integrity="sha256-LCC1+/+r5Lh/iWGb/Ia+bt8xhpMYTWrLQxiwMTjwXV4=" data-instant-track />
+    <link rel="stylesheet" href="/css/meme.min.da294ff38fb0ca65b656c4bf97887c525de7cc766788628fc2ea37c3269c3a97.css" integrity="sha256-2ilP84+wymW2VsS/l4h8Ul3nzHZniGKPwuo3wyacOpc=" data-instant-track />
 
     <link href="https://fonts.googleapis.com/css?family=EB+Garamond:400,400i,500,700,700i|Noto+Serif+SC:400,500,700|Source+Code+Pro:400,400i,700,700i&display=swap&subset=chinese-simplified" rel="stylesheet" />
 
@@ -242,7 +242,7 @@
     
     
                     
-                    懒有时是一种进步！ 之前使用Dokcer就是基于公司的发布平台，使用的比较浅，也就是写Dockerfile，而对于Golang项目，Dockerfile编写相对简单，所以造就就Docker使用一直不太深……
+                    懒有时是一种进步！ 之前使用Dokcer就是基于公司的发布平台，使用的比较浅，也就是写Dockerfile，而对于Golang项目，Dockerfile编写相对简单，所以造就就Docker使用一直不太深入。即使是现在，也还停留在使用层面。对于原理更深的东西没有过多的研究。路一步步走，知识一点点更新吧。……
                 </summary>
                 
                     <div class="read-more-container">
@@ -294,7 +294,7 @@
     
     
                     
-                    最近迁移到Windows平台时，在使用 hugo 构建模板的过程中，使用 hugo server 后打开测试连接时，发现CSS加载不出来，并报错如下: 1 2 Failed to find a valid digest in the &#39;integrity&#39; attribute for resource &#39;xxx&#39; with computed SHA-256 integrity &#39;xxx&#39;. The resource has been blocked. 通过关键词 integrity 查询与 SRI (Subresource Integrity) 子资源完……
+                    最近迁移到Windows平台时，在使用 hugo 构建模板的过程中，使用 hugo server 后打开测试连接时，发现CSS加载不出来，并报错如下: 1 2 Failed to find a valid digest in the &#39;integrity&#39; attribute for resource &#39;xxx&#39; with computed SHA-256 integrity &#39;xxx&#39;. The resource has been blocked. 通过关键词 integrity 查询与 SRI (Subresource Integrity) 子资源完整性有关系。为什么hugo会引发呢？我的模板有个配置项是关闭SRI，我设置关闭后，hugo又报如下错……
                 </summary>
                 
                     <div class="read-more-container">
@@ -346,7 +346,7 @@
     
     
                     
-                    凿不休则沟深，斧不止则薪多。——王充 路由实现，是Gin框架的核心，REST风格注册路由，RadixTree（基数树）路由匹配实现，也让寻址更加快。实现了http.Server.Handler接口。合理……
+                    凿不休则沟深，斧不止则薪多。——王充 路由实现，是Gin框架的核心，REST风格注册路由，RadixTree（基数树）路由匹配实现，也让寻址更加快。实现了http.Server.Handler接口。合理设计使注册中间件变得非常快捷优雅。解耦巧妙，寻址高效。接下来我们就一点点剖析。 Engine.trees Engine 结构关于路由的有两……
                 </summary>
                 
                     <div class="read-more-container">
@@ -398,7 +398,7 @@
     
     
                     
-                    地转天旋，万事开头难，斗霜傲雪二十年，堂堂剑气尚寒。 Gin 的优秀不止是性能上的凸显，也能在很多小细节上展现。下面我们就看看，WEB服务最基础的服务监听注册是怎么编写及实现的。 HTTP服务注册 来看看最简单的……
+                    地转天旋，万事开头难，斗霜傲雪二十年，堂堂剑气尚寒。 Gin 的优秀不止是性能上的凸显，也能在很多小细节上展现。下面我们就看看，WEB服务最基础的服务监听注册是怎么编写及实现的。 HTTP服务注册 来看看最简单的代码： 1 2 3 4 5 6 7 8 9 10 11 12 package main import &#34;github.com/gin-gonic/gin&#34; func main() { // 最简单的HTTP服务监听 engine := gin.Default() engine.GET(&#34;/health&#34;, func(c *gin.Context) { c.JSON(200, &#34;ok&#34;) }) if err := engine.Run(&#34;:8080&#34;); err……
                 </summary>
                 
                     <div class="read-more-container">
@@ -450,7 +450,7 @@
     
     
                     
-                    善于回顾，走过的路，时长看看，说不定能发现更多的惊喜！ Gin WEB框架，从开源到至今都一直秉承着简洁的设计理念，快！快！快！是它的代名称。简单，高效，灵活，是越来越多人喜欢它的理由。 Martini-like API风格，模块化设……
+                    善于回顾，走过的路，时长看看，说不定能发现更多的惊喜！ Gin WEB框架，从开源到至今都一直秉承着简洁的设计理念，快！快！快！是它的代名称。简单，高效，灵活，是越来越多人喜欢它的理由。 Martini-like API风格，模块化设计，依赖注入带来使用便捷优势，修改过的httprouter带来高速的路由匹配性能优势。 Gin能做什么……
                 </summary>
                 
                     <div class="read-more-container">

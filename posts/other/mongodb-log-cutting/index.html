@@ -47,14 +47,14 @@
 
     <title>Mongodb Log Cutting | Sharing the life of words</title>
 
-    <link rel="stylesheet" href="/css/meme.min.2c20b5fbffabe4b87f89619bfc86be6edf318693184d6acb4318b03138f05d5e.css" integrity="sha256-LCC1+/+r5Lh/iWGb/Ia+bt8xhpMYTWrLQxiwMTjwXV4=" data-instant-track />
+    <link rel="stylesheet" href="/css/meme.min.da294ff38fb0ca65b656c4bf97887c525de7cc766788628fc2ea37c3269c3a97.css" integrity="sha256-2ilP84+wymW2VsS/l4h8Ul3nzHZniGKPwuo3wyacOpc=" data-instant-track />
 
     <link href="https://fonts.googleapis.com/css?family=EB+Garamond:400,400i,500,700,700i|Noto+Serif+SC:400,500,700|Source+Code+Pro:400,400i,700,700i&display=swap&subset=chinese-simplified" rel="stylesheet" />
 
     <meta name="author" content="huzhongqing" />
     
     
-    <meta name="description" content="不积硅步无以至千里 mongodb 运行日志，如果长期不进行滚动切割，会导致单日志文件过大，影响日志的写入与读取。所以可以通过给mongodb进程发送信号，让主进程自动切割日志 此脚本的功能是：定时切割日志，并保存X天……" />
+    <meta name="description" content="不积硅步无以至千里 mongodb 运行日志，如果长期不进行滚动切割，会导致单日志文件过大，影响日志的写入与读取。所以可以通过给mongodb进程发送信号，让主进程自动切割日志 此脚本的功能是：定时切割日志，并保存X天数的日志量。 请适当的修改内部参数 1 2 3 4 5 6 7 8 9 10 #!/bin/bash # crond cutting mongodb.log pidPath=/data/mongodb/db/mongod.lock logPath=/data/mongodb/log/ PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin export PATH kill -SIGUSR1 $(cat ${pidPath}) find &amp;#34;${logPath}&amp;#34; -mtime &#43;7 -name &amp;#34;mongod.log*&amp;#34; -exec rm -rf {}……" />
     <meta name="keywords" content="技术笔记, sh, mongodb" />
     
     <link rel="shortcut icon" type="image/ico" href="/favicon.ico" />
@@ -87,7 +87,7 @@
         "dateModified": "2020-03-02T14:09:18+08:00",
         "url": "https://www.huzhongqing.com/posts/other/mongodb-log-cutting/",
         "headline": "Mongodb Log Cutting",
-        "description": "不积硅步无以至千里 mongodb 运行日志，如果长期不进行滚动切割，会导致单日志文件过大，影响日志的写入与读取。所以可以通过给mongodb进程发送信号，让主进程自动切割日志 此脚本的功能是：定时切割日志，并保存X天……",
+        "description": "不积硅步无以至千里 mongodb 运行日志，如果长期不进行滚动切割，会导致单日志文件过大，影响日志的写入与读取。所以可以通过给mongodb进程发送信号，让主进程自动切割日志 此脚本的功能是：定时切割日志，并保存X天数的日志量。 请适当的修改内部参数 1 2 3 4 5 6 7 8 9 10 #!/bin/bash # crond cutting mongodb.log pidPath=/data/mongodb/db/mongod.lock logPath=/data/mongodb/log/ PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin export PATH kill -SIGUSR1 $(cat ${pidPath}) find \u0026#34;${logPath}\u0026#34; -mtime +7 -name \u0026#34;mongod.log*\u0026#34; -exec rm -rf {}……",
         "keywords": "技术笔记, sh, mongodb",
         "inLanguage" : "zh-CN",
         "articleSection": "posts",
@@ -134,7 +134,7 @@
 
 
 <meta property="og:title" content="Mongodb Log Cutting" />
-<meta property="og:description" content="不积硅步无以至千里 mongodb 运行日志，如果长期不进行滚动切割，会导致单日志文件过大，影响日志的写入与读取。所以可以通过给mongodb进程发送信号，让主进程自动切割日志 此脚本的功能是：定时切割日志，并保存X天……" />
+<meta property="og:description" content="不积硅步无以至千里 mongodb 运行日志，如果长期不进行滚动切割，会导致单日志文件过大，影响日志的写入与读取。所以可以通过给mongodb进程发送信号，让主进程自动切割日志 此脚本的功能是：定时切割日志，并保存X天数的日志量。 请适当的修改内部参数 1 2 3 4 5 6 7 8 9 10 #!/bin/bash # crond cutting mongodb.log pidPath=/data/mongodb/db/mongod.lock logPath=/data/mongodb/log/ PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin export PATH kill -SIGUSR1 $(cat ${pidPath}) find &amp;#34;${logPath}&amp;#34; -mtime &#43;7 -name &amp;#34;mongod.log*&amp;#34; -exec rm -rf {}……" />
 <meta property="og:url" content="https://www.huzhongqing.com/posts/other/mongodb-log-cutting/" />
 <meta property="og:site_name" content="Sharing the life of words" />
 <meta property="og:locale" content="zh-CN" /><meta property="og:image" content="https://www.huzhongqing.com/icons/bike.png" />

@@ -4,7 +4,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom" xml:lang="zh-CN">
     <title type="text">Sharing the life of words</title>
     <subtitle type="html">生活笔记</subtitle>
-    <updated>2020-12-18T15:10:16+08:00</updated>
+    <updated>2020-12-18T15:28:40+08:00</updated>
     <id>https://www.huzhongqing.com/</id>
     <link rel="alternate" type="text/html" href="https://www.huzhongqing.com/" />
     <link rel="self" type="application/atom+xml" href="https://www.huzhongqing.com/atom.xml" />
@@ -29,7 +29,7 @@
                     </author>
             <rights>[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)</rights>
     
-    <summary type="html"><![CDATA[懒有时是一种进步！ 之前使用Dokcer就是基于公司的发布平台，使用的比较浅，也就是写Dockerfile，而对于Golang项目，Dockerfile编写相对简单，所以造就就Docker使用一直不太深……]]></summary>
+    <summary type="html"><![CDATA[懒有时是一种进步！ 之前使用Dokcer就是基于公司的发布平台，使用的比较浅，也就是写Dockerfile，而对于Golang项目，Dockerfile编写相对简单，所以造就就Docker使用一直不太深入。即使是现在，也还停留在使用层面。对于原理更深的东西没有过多的研究。路一步步走，知识一点点更新吧。……]]></summary>
             
                 <content type="html"><![CDATA[<blockquote>
 <p>懒有时是一种进步！</p>
@@ -671,7 +671,7 @@ rc-service gitlab-runner status
                     </author>
             <rights>[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)</rights>
     
-    <summary type="html"><![CDATA[最近迁移到Windows平台时，在使用 hugo 构建模板的过程中，使用 hugo server 后打开测试连接时，发现CSS加载不出来，并报错如下: 1 2 Failed to find a valid digest in the 'integrity' attribute for resource 'xxx' with computed SHA-256 integrity 'xxx'. The resource has been blocked. 通过关键词 integrity 查询与 SRI (Subresource Integrity) 子资源完……]]></summary>
+    <summary type="html"><![CDATA[最近迁移到Windows平台时，在使用 hugo 构建模板的过程中，使用 hugo server 后打开测试连接时，发现CSS加载不出来，并报错如下: 1 2 Failed to find a valid digest in the 'integrity' attribute for resource 'xxx' with computed SHA-256 integrity 'xxx'. The resource has been blocked. 通过关键词 integrity 查询与 SRI (Subresource Integrity) 子资源完整性有关系。为什么hugo会引发呢？我的模板有个配置项是关闭SRI，我设置关闭后，hugo又报如下错……]]></summary>
             
                 <content type="html"><![CDATA[<p>最近迁移到Windows平台时，在使用 hugo 构建模板的过程中，使用 hugo server 后打开测试连接时，发现CSS加载不出来，并报错如下:</p>
 <div class="highlight"><div class="chroma">
@@ -778,7 +778,7 @@ this feature is not available in your current Hugo version
                     </author>
             <rights>[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)</rights>
     
-    <summary type="html"><![CDATA[凿不休则沟深，斧不止则薪多。——王充 路由实现，是Gin框架的核心，REST风格注册路由，RadixTree（基数树）路由匹配实现，也让寻址更加快。实现了http.Server.Handler接口。合理……]]></summary>
+    <summary type="html"><![CDATA[凿不休则沟深，斧不止则薪多。——王充 路由实现，是Gin框架的核心，REST风格注册路由，RadixTree（基数树）路由匹配实现，也让寻址更加快。实现了http.Server.Handler接口。合理设计使注册中间件变得非常快捷优雅。解耦巧妙，寻址高效。接下来我们就一点点剖析。 Engine.trees Engine 结构关于路由的有两……]]></summary>
             
                 <content type="html"><![CDATA[<blockquote>
 <p>凿不休则沟深，斧不止则薪多。——王充</p>
@@ -1143,7 +1143,7 @@ this feature is not available in your current Hugo version
                     </author>
             <rights>[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)</rights>
     
-    <summary type="html"><![CDATA[地转天旋，万事开头难，斗霜傲雪二十年，堂堂剑气尚寒。 Gin 的优秀不止是性能上的凸显，也能在很多小细节上展现。下面我们就看看，WEB服务最基础的服务监听注册是怎么编写及实现的。 HTTP服务注册 来看看最简单的……]]></summary>
+    <summary type="html"><![CDATA[地转天旋，万事开头难，斗霜傲雪二十年，堂堂剑气尚寒。 Gin 的优秀不止是性能上的凸显，也能在很多小细节上展现。下面我们就看看，WEB服务最基础的服务监听注册是怎么编写及实现的。 HTTP服务注册 来看看最简单的代码： 1 2 3 4 5 6 7 8 9 10 11 12 package main import "github.com/gin-gonic/gin" func main() { // 最简单的HTTP服务监听 engine := gin.Default() engine.GET("/health", func(c *gin.Context) { c.JSON(200, "ok") }) if err := engine.Run(":8080"); err……]]></summary>
             
                 <content type="html"><![CDATA[<blockquote>
 <p>地转天旋，万事开头难，斗霜傲雪二十年，堂堂剑气尚寒。</p>
@@ -1653,7 +1653,7 @@ this feature is not available in your current Hugo version
                     </author>
             <rights>[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)</rights>
     
-    <summary type="html"><![CDATA[善于回顾，走过的路，时长看看，说不定能发现更多的惊喜！ Gin WEB框架，从开源到至今都一直秉承着简洁的设计理念，快！快！快！是它的代名称。简单，高效，灵活，是越来越多人喜欢它的理由。 Martini-like API风格，模块化设……]]></summary>
+    <summary type="html"><![CDATA[善于回顾，走过的路，时长看看，说不定能发现更多的惊喜！ Gin WEB框架，从开源到至今都一直秉承着简洁的设计理念，快！快！快！是它的代名称。简单，高效，灵活，是越来越多人喜欢它的理由。 Martini-like API风格，模块化设计，依赖注入带来使用便捷优势，修改过的httprouter带来高速的路由匹配性能优势。 Gin能做什么……]]></summary>
             
                 <content type="html"><![CDATA[<blockquote>
 <p>善于回顾，走过的路，时长看看，说不定能发现更多的惊喜！</p>
@@ -1736,7 +1736,7 @@ Martini-like API风格，模块化设计，依赖注入带来使用便捷优势�
                     </author>
             <rights>[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)</rights>
     
-    <summary type="html"><![CDATA[信任固然好，监控更重要 Prometheus 监控简单搭建思路，满足监控目标服务自发现。采用到 prometheus，grafana，confd，etcd工具搭配使用。 Prometheus负责把metrics数据从监控服务端……]]></summary>
+    <summary type="html"><![CDATA[信任固然好，监控更重要 Prometheus 监控简单搭建思路，满足监控目标服务自发现。采用到 prometheus，grafana，confd，etcd工具搭配使用。 Prometheus负责把metrics数据从监控服务端抓取到本地或远端存储，Grafana通过连接Prometheus数据源，通过PromQL查询所抓取到……]]></summary>
             
                 <content type="html"><![CDATA[<blockquote>
 <p>信任固然好，监控更重要</p>
@@ -2179,7 +2179,7 @@ scrape_configs:
                     </author>
             <rights>[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)</rights>
     
-    <summary type="html"><![CDATA[温习与点滴之间，持续更新... 记录在日常使用Git过程中发现的错误以及解决方法。做一个汇总，方便后期回顾温习。 使用版块 异常版块 问题 fatal: in unpopulated submodule 'xxx' 未填充子模块，这类错误一般与主项目里面有子模块，但是子模块g……]]></summary>
+    <summary type="html"><![CDATA[温习与点滴之间，持续更新... 记录在日常使用Git过程中发现的错误以及解决方法。做一个汇总，方便后期回顾温习。 使用版块 异常版块 问题 fatal: in unpopulated submodule 'xxx' 未填充子模块，这类错误一般与主项目里面有子模块，但是子模块git的状态产生异常或追踪不到所产生的。 因为子模块我可以丢弃，所以我解决的方法比较粗暴，一般就是主/子……]]></summary>
             
                 <content type="html"><![CDATA[<blockquote>
 <p>温习与点滴之间，持续更新...</p>
@@ -2286,7 +2286,7 @@ vim .git/config  // 删除<span class="o">[</span>submodule <span class="s2">&#3
                     </author>
             <rights>[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)</rights>
     
-    <summary type="html"><![CDATA[不积硅步无以至千里 mongodb 运行日志，如果长期不进行滚动切割，会导致单日志文件过大，影响日志的写入与读取。所以可以通过给mongodb进程发送信号，让主进程自动切割日志 此脚本的功能是：定时切割日志，并保存X天……]]></summary>
+    <summary type="html"><![CDATA[不积硅步无以至千里 mongodb 运行日志，如果长期不进行滚动切割，会导致单日志文件过大，影响日志的写入与读取。所以可以通过给mongodb进程发送信号，让主进程自动切割日志 此脚本的功能是：定时切割日志，并保存X天数的日志量。 请适当的修改内部参数 1 2 3 4 5 6 7 8 9 10 #!/bin/bash # crond cutting mongodb.log pidPath=/data/mongodb/db/mongod.lock logPath=/data/mongodb/log/ PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin export PATH kill -SIGUSR1 $(cat ${pidPath}) find "${logPath}" -mtime +7 -name "mongod.log*" -exec rm -rf {}……]]></summary>
             
                 <content type="html"><![CDATA[<blockquote>
 <p>不积硅步无以至千里</p>
