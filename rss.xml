@@ -23,10 +23,647 @@
         
             <copyright>[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)</copyright>
         
-        <lastBuildDate>Fri, 18 Dec 2020 14:56:23 +0800</lastBuildDate>
+        <lastBuildDate>Fri, 18 Dec 2020 15:10:16 +0800</lastBuildDate>
         
             <atom:link rel="self" type="application/rss+xml" href="https://www.huzhongqing.com/rss.xml" />
         
+        
+            <item>
+                <title>记一次测试环境CI/CD Docker容器化部署</title>
+                <link>https://www.huzhongqing.com/posts/deployments/ci-cd/</link>
+                <guid isPermaLink="true">https://www.huzhongqing.com/posts/deployments/ci-cd/</guid>
+                <pubDate>Fri, 18 Dec 2020 15:06:20 +0800</pubDate>
+                
+                    <author>zhongqing2016@qq.com (huzhongqing)</author>
+                
+                <copyright>[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)</copyright>
+                
+                    <description><![CDATA[<blockquote>
+<p>懒有时是一种进步！</p>
+</blockquote>
+<p>之前使用Dokcer就是基于公司的发布平台，使用的比较浅，也就是写Dockerfile，而对于Golang项目，Dockerfile编写相对简单，所以造就就Docker使用一直不太深入。即使是现在，也还停留在使用层面。对于原理更深的东西没有过多的研究。路一步步走，知识一点点更新吧。</p>
+<blockquote>
+<p>脱去平台的外衣，还能剩什么，很多东西就要自己构建实施啦。</p>
+</blockquote>
+<h2 id="基础环境">基础环境</h2>
+<ol>
+<li>gitlab仓库 gitlab-runner CI 运行环境</li>
+<li>docker  docker-compose harbor(docker私有仓库)</li>
+<li>Linux 虚拟机，CentOS Alpine 发行版本</li>
+<li>go version 1.14+</li>
+</ol>
+<h2 id="目标">目标</h2>
+<ol>
+<li>实现代码提交，自动更新构建，容器运行在测试环境的机器上</li>
+<li>脚本尽可能写的简单清晰。容器镜像偏小。</li>
+</ol>
+<h2 id="实施步骤">实施步骤</h2>
+<ol>
+<li>基础资源部署：
+<ol>
+<li>gitlab-runner 注册配置</li>
+<li>指定Build机器，安装Docker环境</li>
+<li>安装私有镜像仓库及设置相关配置</li>
+</ol>
+</li>
+<li>准备Demo
+<ol>
+<li>准备golang demo， 尽可能遵行 golang/project-layout</li>
+<li>编写Build脚本及deploy脚本</li>
+<li>推送代码，调试测试脚本等。</li>
+</ol>
+</li>
+</ol>
+<h2 id="具体实施">具体实施</h2>
+<p><strong>所有部署性的东西，都简单说，只说注意事项，减免弯路，以 Alpine Linux 为例</strong></p>
+<h3 id="先解答一些疑惑">先解答一些疑惑？</h3>
+<p>Q: <strong>为什么选择使用 Alpine Linux作为Build机器？</strong></p>
+<p>A:</p>
+<ol>
+<li>能够较轻松的使用 Alpine(很适合Golang运行及分发) Docker镜像，编译运行使用的Linux发行版本一致，不容易出奇怪的问题。</li>
+<li>Golang 因为cgo的原因，编译需要 gcc, 比如你在CentOS的机器上编译成 运行文件，然后COPY到 Alpine 容器内，会运行不起来的，报错
+<blockquote>
+<p>standard_init_linux.go:178: exec user process caused “no such file or directory”</p>
+</blockquote>
+</li>
+</ol>
+<p>Q: <strong>为什么不使用 Docker 的多次构建，使用 golang:alpine 镜像作为 builder 容器？</strong></p>
+<p>A:</p>
+<ol>
+<li>这样确实也是一种比较好的实施方案，而且也不依赖于宿主机必须为 Alpine Linux，但是通过实践，我因为 go mod 与 docker 的缓存机制而放弃了。如果使用docker multi builder。 最大程度的使用 cache 就是让 go mod download 命令能够在 go.mod 与 go.sum 不变更的情况下，docker build 缓存一层。 但是作为构建机器，肯定会有多个项目构建，那么每一个项目对应都会有一次 go mod 的cache，这样会导致Docker<em>缓存层占用空间快速的放大</em>。而且还不能执行 docker image prune -f 清理 <none>:<none> 这种中间镜像。清理了，就意味着，要重新 go mod download 一次，这对网络也是一个不小的挑战。</li>
+<li>当我们 go.mod 可能只有一个很小的变动，升级一个包的版本，那么也将面临，整个依赖包重新下载。增加构建时间。</li>
+<li>如果我们在宿主机上面构建，那么因为 go mod 的cache机制，我们每次可能只用更新需要的代码，而且各个项目如果使用相同版本的包，就不会重复获取，极大节约磁盘空间。</li>
+<li>这样做也有<strong>缺点</strong>，就是所有依赖的 go 版本都变成一致的了。 不过可以通过不同的 gitlab-runner 解决问题。 有必要也可以 multi builder 不冲突</li>
+</ol>
+<p><strong>当Alpine(空白机器|网络正常)需要安装的最基础包</strong></p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-sh" data-lang="sh"><span class="c1"># 更换镜像源</span> 
+cp /etc/apk/repositories /etc/apk/repositories.bak <span class="o">&amp;&amp;</span> <span class="nb">echo</span> <span class="s1">&#39;http://mirrors.ustc.edu.cn/alpine/v3.12/main
+</span><span class="s1">http://mirrors.ustc.edu.cn/alpine/v3.12/community&#39;</span> &gt; /etc/apk/repositories<span class="p">;</span>
+
+<span class="c1"># 使用过程中，缺哪样再补哪样吧</span>
+apk update <span class="o">&amp;&amp;</span> apk add --no-cache <span class="se">\</span>
+go <span class="se">\</span>
+make <span class="se">\</span>
+wget <span class="se">\</span>
+docker <span class="se">\</span>
+docker-compose <span class="se">\</span>
+gitlab-runner <span class="se">\</span>
+bash
+
+<span class="c1"># 安装bash是因为 gitlab-runner 依赖bash</span>
+</code></pre></td></tr></table>
+</div>
+</div><h3 id="gitlab-runner">gitlab-runner</h3>
+<p><a href="https://docs.gitlab.com/runner/">参考文档</a></p>
+<p>gitlab-ci持续集成环境(类Jenkins) <a href="https://docs.gitlab.com/ee/ci/quick_start/README.html">Gitlab开启CI/CD</a></p>
+<p>gitlab-runner 就是一个编译环境(提供 Shell、docker、k8s)。我们编译过程中，<strong>Shell</strong>执行环境就能满足多数情况，而且更加简单。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-sh" data-lang="sh"><span class="c1"># alpine 是依赖 openrc 作为初始化系统</span>
+<span class="c1"># 设置开机启动</span>
+rc-update add gitlab-runner boot
+<span class="c1"># 这个时候，可以去 /etc/init.d/gitlab-runner 查看具体配置， 建议修改如下</span>
+<span class="c1">#!/sbin/openrc-run</span>
+
+<span class="c1">#supervisor=supervise-daemon</span>
+
+<span class="c1">#description=&#34;GitLab CI Runner&#34;</span>
+<span class="c1">#name=&#34;Gitlab Runner&#34;</span>
+
+<span class="c1">#command=&#34;/usr/bin/gitlab-runner&#34;</span>
+<span class="c1">#command_args=&#34;run --working-directory /root/runner --config /etc/gitlab-runner/config.toml&#34;</span>
+<span class="c1">#command_user=&#34;root&#34;</span>
+
+<span class="c1">#depend() {</span>
+<span class="c1">#	need net</span>
+<span class="c1">#}</span>
+</code></pre></td></tr></table>
+</div>
+</div><div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-sh" data-lang="sh"><span class="c1"># 注册Runner到gitlab上,根据交互式命令输入相关</span>
+<span class="c1"># Token的获取，在gitlab上，设置 CI/CD Pages</span>
+<span class="c1"># 交互式命令输入完成后，就可以查看 /etc/gitlab-runner/config.toml</span>
+<span class="c1"># 注意选择 runner executor 时，选择 Shell</span> 
+gitlab-runner register 
+</code></pre></td></tr></table>
+</div>
+</div><div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-sh" data-lang="sh"><span class="c1">#启动</span>
+rc-service gitlab-runner start
+<span class="c1">#查看状态</span>
+rc-service gitlab-runner status
+</code></pre></td></tr></table>
+</div>
+</div><p>这时去看Gitlab项目CI/CD设置里面，是否已经注册成功</p>
+<h4 id="常见问题">常见问题</h4>
+<p><strong>Q: runner 状态黑色小感叹号 New runner. Has not connected yet</strong></p>
+<p>A: gitlab-runner verify  执行验证一下</p>
+<p><strong>Q: 未注册成功</strong></p>
+<p>A: 检查Token是否填入正确， 配置生成的Token和你填入的Token是不一样的。检查URL（gitlab Hostname）是否填入正确</p>
+<h3 id="harbor-私有dokcer镜像仓库">Harbor 私有Dokcer镜像仓库</h3>
+<p><a href="https://github.com/goharbor/harbor">Harbor github</a>，下载Release版本，里面有镜像包</p>
+<ol>
+<li>解压安装包</li>
+<li>执行 prepare 文件</li>
+<li>执行 install.sh</li>
+<li>cp harbor.yml.tmpl harbor.yml 修改你想要的参数</li>
+<li>使用 docker-compose 启动就行</li>
+</ol>
+<h3 id="dokcer安装">Dokcer安装</h3>
+<p>没什么太好说的，直接使用 rc-update add docker boot &amp;&amp; rc-service docker start 启动就好了。</p>
+<p>这里注意修改一下配置 /etc/docker/daemon.json (重启, docker info 查看一下是否已更改)</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-json" data-lang="json">    <span class="p">{</span>
+     <span class="nt">&#34;registry-mirrors&#34;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&#34;你的国内镜像源，推荐 aliyun&#34;</span><span class="p">],</span>
+     <span class="nt">&#34;insecure-registries&#34;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&#34;在Harbor没有开启HTTPS的情况下,你的私有仓库地址。 例 harbor.xxxx.com:80&#34;</span><span class="p">]</span>
+    <span class="p">}</span>  
+</code></pre></td></tr></table>
+</div>
+</div><blockquote>
+<p>docker login -u admin -p xxxx harbor.xxxx.com:80 这样登录到你自己搭建的私有仓库中</p>
+</blockquote>
+<h3 id="创建一个项目-demo-编写相关的脚本进行演练">创建一个项目 Demo ，编写相关的脚本，进行演练</h3>
+<p>目录结构</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-txt" data-lang="txt">├── .gitignore
+├── .gitlab-ci.yml
+├── Dockerfile
+├── Makefile
+├── README.md
+├── build.sh
+├── cmd
+│   ├── api
+│   │   └── main.go
+│   └── task
+│       └── main.go
+├── configs
+│   ├── config.toml
+│   └── config_release.toml
+├── deploy.sh
+├── docs
+│   └── README.md
+├── go.mod
+├── go.sum
+└── pkg
+    ├── api
+    │   ├── api.go
+    │   ├── handler_func.go
+    │   └── route.go
+    ├── common
+    │   └── model
+    │       └── model.go
+    ├── config
+    │   └── config.go
+    ├── httputil
+    │   ├── errors.go
+    │   └── response.go
+    └── task
+        └── task.go
+</code></pre></td></tr></table>
+</div>
+</div><p>上面demo，将会启动2个容器， task 与 api</p>
+<h4 id="gitlab-ciyml">.gitlab-ci.yml</h4>
+<p>这个是Gitlab开启CI/CD的必要条件，也是告诉 gitlab-runner 应该怎么做。<a href="https://docs.gitlab.com/ee/ci/yaml/">gitlab-ci.yml</a></p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span><span class="lnt">36
+</span><span class="lnt">37
+</span><span class="lnt">38
+</span><span class="lnt">39
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-yml" data-lang="yml"><span class="c"># 提前设置一些常量</span><span class="w">
+</span><span class="w"></span>variables<span class="p">:</span><span class="w">
+</span><span class="w">  </span><span class="k">IMAGE</span><span class="p">:</span><span class="w"> </span><span class="s2">&#34;harbor.xxxx.com:8000/library/release/layout:latest&#34;</span><span class="w">
+</span><span class="w"></span><span class="c"># 定义阶段，我这里定义了 构建阶段 和 部署阶段</span><span class="w">
+</span><span class="w"></span>stages<span class="p">:</span><span class="w">
+</span><span class="w">  </span>- build<span class="w">
+</span><span class="w">  </span>- deploy<span class="w">
+</span><span class="w">
+</span><span class="w"></span><span class="c"># 构建Docker镜像的 JOB</span><span class="w">
+</span><span class="w"></span>build_docker<span class="p">:</span><span class="w">
+</span><span class="w">  </span><span class="k">stage</span><span class="p">:</span><span class="w"> </span>build<span class="w">
+</span><span class="w">  </span>before_script<span class="p">:</span><span class="w">
+</span><span class="w">    </span>- export<span class="w"> </span>ENV=release<span class="w">
+</span><span class="w">  </span>script<span class="p">:</span><span class="w">
+</span><span class="w">    </span><span class="c"># 设置配置文件</span><span class="w">
+</span><span class="w">    </span>- mv<span class="w"> </span>configs/config_${ENV}.toml<span class="w"> </span>configs/config.toml<span class="w">
+</span><span class="w">    </span><span class="c"># 在这里也可以根据 git 信息，设置 image:tag</span><span class="w">
+</span><span class="w">    </span><span class="c"># 执行Makefile 里面的 build 文件</span><span class="w">
+</span><span class="w">    </span>- make<span class="w"> </span>build<span class="w"> </span>IMAGE=$IMAGE<span class="w">
+</span><span class="w">  </span>tags<span class="p">:</span><span class="w">
+</span><span class="w">    </span><span class="c"># 这个JOB在 下面这个 runner 里面运行</span><span class="w">
+</span><span class="w">    </span>- go_docker_alpine<span class="w">
+</span><span class="w">  </span>only<span class="p">:</span><span class="w">
+</span><span class="w">    </span><span class="c"># 一种限制规格，只在 master 有变法时，执行此JOB</span><span class="w">
+</span><span class="w">    </span>- master<span class="w">
+</span><span class="w">
+</span><span class="w"></span><span class="c"># 部署Docker镜像的 JOB</span><span class="w">
+</span><span class="w"></span>deploy-docker<span class="p">:</span><span class="w">
+</span><span class="w">  </span><span class="c"># 部署阶段</span><span class="w">
+</span><span class="w">  </span><span class="k">stage</span><span class="p">:</span><span class="w"> </span>deploy<span class="w">
+</span><span class="w">  </span>script<span class="p">:</span><span class="w">
+</span><span class="w">    </span><span class="c"># （构建机器与目标机器ssh能通）去部署的目标机器 创建一些必要目录，然后执行部署脚本</span><span class="w">
+</span><span class="w">    </span>- ssh<span class="w"> </span>dev-cd<span class="m">-114</span><span class="w"> </span><span class="s2">&#34;mkdir -p /root/apps/layout&#34;</span><span class="w">
+</span><span class="w">    </span>- scp<span class="w"> </span>-r<span class="w"> </span>deploy.sh<span class="w"> </span>dev-cd<span class="m">-114</span><span class="p">:</span>/root/apps/layout/deploy.sh<span class="w">
+</span><span class="w">    </span>- ssh<span class="w"> </span>dev-cd<span class="m">-114</span><span class="w"> </span><span class="s2">&#34;cd /root/apps/layout &amp;&amp; chmod +x deploy.sh &amp;&amp; ./deploy.sh $IMAGE&#34;</span><span class="w">
+</span><span class="w">  </span>tags<span class="p">:</span><span class="w">
+</span><span class="w">    </span>- go_docker_alpine<span class="w">
+</span><span class="w">  </span>only<span class="p">:</span><span class="w">
+</span><span class="w">    </span>- master<span class="w">
+</span></code></pre></td></tr></table>
+</div>
+</div><p>在执行的时候，可以通过 gitlab Page 查看CI/CD的过程，以便排查BUG等。</p>
+<h4 id="makefile-文件">Makefile 文件</h4>
+<p>因为是这里的Makefile 写的很简单，就是执行了一个 build.sh ，在这里引入Makefile是因为未来它可以做更多的工作。</p>
+<h4 id="buildsh">build.sh</h4>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-sh" data-lang="sh"><span class="cp">#!/bin/sh
+</span><span class="cp"></span><span class="nv">exec_image</span><span class="o">=</span><span class="s2">&#34;&#34;</span>
+<span class="k">if</span> <span class="o">[</span> <span class="s2">&#34;</span><span class="nv">$1</span><span class="s2">&#34;</span> <span class="o">]</span> <span class="p">;</span><span class="k">then</span>
+  <span class="nv">exec_image</span><span class="o">=</span><span class="nv">$1</span>
+<span class="k">else</span>
+  <span class="nb">echo</span> <span class="s1">&#39;image:tag required&#39;</span>
+  <span class="nb">exit</span> 1
+<span class="k">fi</span>
+
+<span class="nb">echo</span> <span class="s2">&#34;process image name: </span><span class="nv">$exec_image</span><span class="s2">&#34;</span>
+
+<span class="nb">set</span> -eux<span class="p">;</span> <span class="se">\</span>
+        <span class="nb">export</span> <span class="nv">GOPROXY</span><span class="o">=</span><span class="s2">&#34;https://goproxy.io,direct&#34;</span><span class="p">;</span> <span class="se">\</span>
+        <span class="nb">export</span> <span class="nv">GOPRIVATE</span><span class="o">=</span><span class="s2">&#34;gitlab.xxxx.com&#34;</span><span class="p">;</span> <span class="se">\</span>
+        go version <span class="o">&amp;&amp;</span> go mod download<span class="p">;</span> <span class="se">\</span>
+        mkdir -p ./bin <span class="o">&amp;&amp;</span> rm -r ./bin<span class="p">;</span> <span class="se">\</span>
+        <span class="c1"># shellcheck disable=SC2006</span>
+        go build -ldflags <span class="s2">&#34;-s -w -X &#39;main.buildTime=`date`&#39; -X &#39;main.goVersion=`go version`&#39;&#34;</span> <span class="se">\</span>
+                -o bin/layout_task cmd/task/main.go <span class="se">\</span>
+        <span class="p">;</span><span class="se">\</span>
+        <span class="c1"># shellcheck disable=SC2006</span>
+        go build -ldflags <span class="s2">&#34;-s -w -X &#39;main.buildTime=`date`&#39; -X &#39;main.goVersion=`go version`&#39;&#34;</span> <span class="se">\</span>
+            -o bin/layout_api cmd/api/main.go <span class="se">\</span>
+        <span class="p">;</span>
+
+  docker build -t <span class="s2">&#34;</span><span class="nv">$exec_image</span><span class="s2">&#34;</span> .<span class="p">;</span> <span class="se">\</span>
+
+  <span class="c1"># docker image prune -f; \</span>
+  <span class="c1"># 把镜像推送到 private register</span>
+  docker push <span class="s2">&#34;</span><span class="nv">$exec_image</span><span class="s2">&#34;</span>
+</code></pre></td></tr></table>
+</div>
+</div><h4 id="dockerfile">Dockerfile</h4>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span><span class="lnt">36
+</span><span class="lnt">37
+</span><span class="lnt">38
+</span><span class="lnt">39
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-dockerfile" data-lang="dockerfile"><span class="c"># 也可以多次构建多次构建的示例，这样写docker build 可以cache到 go mod download 这一层RUN</span><span class="err">
+</span><span class="err"></span><span class="c">#FROM harbor.xxx.com:8000/library/golang-builder:latest as builder</span><span class="err">
+</span><span class="err"></span><span class="c">#WORKDIR /app</span><span class="err">
+</span><span class="err"></span><span class="c">#</span><span class="err">
+</span><span class="err"></span><span class="c">#COPY go.mod .</span><span class="err">
+</span><span class="err"></span><span class="c">#COPY go.sum .</span><span class="err">
+</span><span class="err"></span><span class="c">#</span><span class="err">
+</span><span class="err"></span><span class="c">#RUN set -eux; \</span><span class="err">
+</span><span class="err"></span><span class="c">#      export GOPROXY=&#34;https://goproxy.io,direct&#34;; \</span><span class="err">
+</span><span class="err"></span><span class="c">#      export GOPRIVATE=&#34;gitlab.xxx.com&#34;; \</span><span class="err">
+</span><span class="err"></span><span class="c">#      go version &amp;&amp; go mod download \</span><span class="err">
+</span><span class="err"></span><span class="c">#      ;</span><span class="err">
+</span><span class="err"></span><span class="c">#</span><span class="err">
+</span><span class="err"></span><span class="c">#COPY . .</span><span class="err">
+</span><span class="err"></span><span class="c">#</span><span class="err">
+</span><span class="err"></span><span class="c">#RUN set -eux; \</span><span class="err">
+</span><span class="err"></span><span class="c">#</span><span class="err">
+</span><span class="err"></span><span class="c">#        mkdir -p ./bin; \</span><span class="err">
+</span><span class="err"></span><span class="c">#        go build -ldflags &#34;-s -w -X &#39;main.buildTime=`date`&#39; -X &#39;main.goVersion=`go version`&#39;&#34; \</span><span class="err">
+</span><span class="err"></span><span class="c">#            -o ./bin/layout_api \</span><span class="err">
+</span><span class="err"></span><span class="c">#            ./cmd/api/main.go \</span><span class="err">
+</span><span class="err"></span><span class="c">#        ;\</span><span class="err">
+</span><span class="err"></span><span class="c">#</span><span class="err">
+</span><span class="err"></span><span class="c">#        go build -ldflags &#34;-s -w -X &#39;main.buildTime=`date`&#39; -X &#39;main.goVersion=`go version`&#39;&#34; \</span><span class="err">
+</span><span class="err"></span><span class="c">#                -o ./bin/layout_task \</span><span class="err">
+</span><span class="err"></span><span class="c">#                ./cmd/task/main.go \</span><span class="err">
+</span><span class="err"></span><span class="c">#        ;</span><span class="err">
+</span><span class="err"></span><span class="c"># 把编译好的执行文件，拷贝到运行容器中</span><span class="err">
+</span><span class="err"></span><span class="k">FROM</span><span class="s"> harbor.dev.crycx.com:8000/library/alpine:base-3.12.2</span><span class="err">
+</span><span class="err"></span><span class="k">WORKDIR</span><span class="s"> /app</span><span class="err">
+</span><span class="err"></span><span class="err">
+</span><span class="err"></span><span class="k">RUN</span> mkdir -p configs<span class="err">
+</span><span class="err"></span><span class="err">
+</span><span class="err"></span><span class="c">#COPY --from=builder ./app/bin .</span><span class="err">
+</span><span class="err"></span><span class="k">COPY</span> ./bin .<span class="err">
+</span><span class="err"></span><span class="c"># 配置</span><span class="err">
+</span><span class="err"></span><span class="k">COPY</span> ./configs/config.toml ./configs/config.toml<span class="err">
+</span><span class="err"></span><span class="err">
+</span><span class="err"></span><span class="k">CMD</span> <span class="p">[</span><span class="s2">&#34;/bin/sh&#34;</span><span class="p">]</span><span class="err">
+</span></code></pre></td></tr></table>
+</div>
+</div><h4 id="deploysh">deploy.sh</h4>
+<p>这里其实就是自由发挥写 docker-compose.yml， 其他部署方式都可以。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-sh" data-lang="sh"><span class="cp">#!/bin/sh
+</span><span class="cp"></span><span class="nv">IMAGE</span><span class="o">=</span><span class="nv">$1</span>
+<span class="nb">set</span> -eux<span class="p">;</span> <span class="se">\</span>
+  docker pull <span class="s2">&#34;</span><span class="si">${</span><span class="nv">IMAGE</span><span class="si">}</span><span class="s2">&#34;</span><span class="p">;</span> <span class="se">\</span>
+  <span class="nb">echo</span> <span class="s2">&#34;version: &#39;3&#39;
+</span><span class="s2">services:
+</span><span class="s2">  api:
+</span><span class="s2">     image: </span><span class="si">${</span><span class="nv">IMAGE</span><span class="si">}</span><span class="s2">
+</span><span class="s2">     ports:
+</span><span class="s2">      - &#39;18080:18080&#39;
+</span><span class="s2">     volumes:
+</span><span class="s2">      - &#39;./log/api:/app/log&#39;
+</span><span class="s2">     entrypoint:
+</span><span class="s2">      - /app/layout_api
+</span><span class="s2">     restart: always
+</span><span class="s2">  task:
+</span><span class="s2">    image: </span><span class="si">${</span><span class="nv">IMAGE</span><span class="si">}</span><span class="s2">
+</span><span class="s2">    volumes:
+</span><span class="s2">      - &#39;./log/task:/app/log&#39;
+</span><span class="s2">    entrypoint:
+</span><span class="s2">      - /app/layout_task
+</span><span class="s2">    restart: always&#34;</span> &gt; docker-compose.yml<span class="p">;</span> <span class="se">\</span>
+
+  docker-compose up -d
+</code></pre></td></tr></table>
+</div>
+</div><h2 id="总结">总结</h2>
+<p>以上就是测试环境容器化的一个简要过程，因为Go天生编译简单的缘故，所以整体实施起来相对简单。对于类似Java，Node，Python这些项目，可能在选择运行容器的时候就很重要了。尽可能是选择官方的。比如 个语言的 slim 类型的镜像。alpine 镜像并不适用大多数语言。</p>
+<p>在这过程中，使用的基本都是 Go 语言系列的工具，不得不说真的很好部署！</p>
+<p>后续再踩到坑，再更新吧！</p>
+]]></description>
+                
+                
+                
+                
+                
+                    
+                        
+                            
+                                
+                                
+                                
+                                    <category domain="https://www.huzhongqing.com/categories/%E6%8A%80%E6%9C%AF%E7%AC%94%E8%AE%B0/">技术笔记</category>
+                                
+                            
+                        
+                    
+                        
+                    
+                        
+                            
+                                
+                                
+                                
+                                    <category domain="https://www.huzhongqing.com/tags/gitlab/">gitlab</category>
+                                
+                            
+                                
+                                
+                                
+                                    <category domain="https://www.huzhongqing.com/tags/ci/cd/">CI/CD</category>
+                                
+                            
+                                
+                                
+                                
+                                    <category domain="https://www.huzhongqing.com/tags/docker/">docker</category>
+                                
+                            
+                        
+                    
+                
+            </item>
         
             <item>
                 <title>Hugo 引发SRI初识</title>
