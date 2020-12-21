@@ -4,7 +4,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom" xml:lang="zh-CN">
     <title type="text">Sharing the life of words</title>
     <subtitle type="html">生活笔记</subtitle>
-    <updated>2020-12-18T15:28:40+08:00</updated>
+    <updated>2020-12-21T10:02:37+08:00</updated>
     <id>https://www.huzhongqing.com/</id>
     <link rel="alternate" type="text/html" href="https://www.huzhongqing.com/" />
     <link rel="self" type="application/atom+xml" href="https://www.huzhongqing.com/atom.xml" />
@@ -20,7 +20,7 @@
             <title type="text">记一次测试环境CI/CD Docker容器化部署</title>
             <link rel="alternate" type="text/html" href="https://www.huzhongqing.com/posts/deployments/ci-cd/" />
             <id>https://www.huzhongqing.com/posts/deployments/ci-cd/</id>
-            <updated>2020-12-18T15:09:43+08:00</updated>
+            <updated>2020-12-21T10:01:58+08:00</updated>
             <published>2020-12-18T15:06:20+08:00</published>
             <author>
                     <name>huzhongqing</name>
@@ -106,6 +106,7 @@
 </span><span class="lnt">13
 </span><span class="lnt">14
 </span><span class="lnt">15
+</span><span class="lnt">16
 </span></code></pre></td>
 <td class="lntd">
 <pre class="chroma"><code class="language-sh" data-lang="sh"><span class="c1"># 更换镜像源</span> 
@@ -114,6 +115,7 @@ cp /etc/apk/repositories /etc/apk/repositories.bak <span class="o">&amp;&amp;</s
 
 <span class="c1"># 使用过程中，缺哪样再补哪样吧</span>
 apk update <span class="o">&amp;&amp;</span> apk add --no-cache <span class="se">\</span>
+git <span class="se">\</span>
 go <span class="se">\</span>
 make <span class="se">\</span>
 wget <span class="se">\</span>
@@ -610,7 +612,29 @@ rc-service gitlab-runner status
   docker-compose up -d
 </code></pre></td></tr></table>
 </div>
-</div><h2 id="总结">总结</h2>
+</div><h2 id="qa">QA</h2>
+<ol>
+<li>go mod download  下载私有包出现  'go mod revision xx: unknown revision xx'
+<ol>
+<li>因为 go mod 是去调用 git 命令下载代码，而且走的 https 协议，所以你要确保，git 配置能够访问你的私有仓库
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-txt" data-lang="txt">user.name=gituser
+user.password=xxxxx
+credential.helper=store
+</code></pre></td></tr></table>
+</div>
+</div></li>
+<li>如果还不行，尝试更新 git 版本到最新， 因为有些命令调取不去， golang 也会报这个错误</li>
+</ol>
+</li>
+</ol>
+<h2 id="总结">总结</h2>
 <p>以上就是测试环境容器化的一个简要过程，因为Go天生编译简单的缘故，所以整体实施起来相对简单。对于类似Java，Node，Python这些项目，可能在选择运行容器的时候就很重要了。尽可能是选择官方的。比如 个语言的 slim 类型的镜像。alpine 镜像并不适用大多数语言。</p>
 <p>在这过程中，使用的基本都是 Go 语言系列的工具，不得不说真的很好部署！</p>
 <p>后续再踩到坑，再更新吧！</p>
