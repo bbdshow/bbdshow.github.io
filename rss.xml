@@ -23,10 +23,68 @@
         
             <copyright>[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)</copyright>
         
-        <lastBuildDate>Fri, 11 Nov 2022 20:54:11 +0800</lastBuildDate>
+        <lastBuildDate>Sat, 19 Nov 2022 10:59:24 +0800</lastBuildDate>
         
             <atom:link rel="self" type="application/rss+xml" href="https://www.bbdshow.top/rss.xml" />
         
+        
+            <item>
+                <title>Nano 初识源码 UML图</title>
+                <link>https://www.bbdshow.top/posts/frame/nano/nano-tree/</link>
+                <guid isPermaLink="true">https://www.bbdshow.top/posts/frame/nano/nano-tree/</guid>
+                <pubDate>Sat, 12 Nov 2022 11:45:04 +0800</pubDate>
+                
+                    <author>https://github.com/bbdshow (bbdshow)</author>
+                
+                <copyright>[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)</copyright>
+                
+                    <description><![CDATA[<p>最新工作上可能涉及到写小游戏的需求，之前一直未接触过游戏。便在Github搜索到 <a href="https://github.com/lonng/nano">Nano</a> 这个框架，进行学习一下。
+还搜索到了 <a href="https://github.com/topfreegames/pitaya">Pitaya</a> 此框架在设计的时候也参考过Nano。经过思考它可能对于我们当前项目来说太重了，如果出现问题，没有Nano好把控。</p>
+<p>Nano支持单点和集群模式，有一个比较“血战长空”麻将的单点服务示例。大多数情况下我使用框架一般不满足于怎么使用，会去深摸怎么实现，调用关系是如何等。所以花了2天理解完整个代码，并做此记录。</p>
+<p>由于官方Cluster模式资料较少，所以画了一张UML图加深理解</p>
+<h4 id="集群引用实现关系和注释文档">集群引用实现关系和注释文档。</h4>
+<p><img src="https://qnoss.bbdshow.top/notes/nano_uml_1_1.png" alt="bbdshow-nano-UML">
+<img src="https://qnoss.bbdshow.top/notes/nano_uml_1_2.png" alt="bbdshow-nano-UML">
+<img src="https://qnoss.bbdshow.top/notes/nano_uml_1_3.png" alt="bbdshow-nano-UML"></p>
+<h4 id="用户请求时序图">用户请求时序图</h4>
+<p><img src="https://qnoss.bbdshow.top/notes/nano_uml_2.png" alt="bbdshow-nano-UML"></p>
+<h4 id="学习后所做的一点事情">学习后所做的一点事情</h4>
+<h6 id="在学习的过程中发现nano的集群模式还有一些待完善的地方所以提交了pr进行解决已合并">在学习的过程中，发现Nano的集群模式还有一些待完善的地方。所以提交了PR进行解决(已合并)。</h6>
+<ul>
+<li>当Gate多部署的情况，依赖单节点产生的sessionId，在集群内非uniuqe id会导致session绑定关系混乱（依托sessionId进行Session绑定管理）。所以这里采用了 snowflake 生成sessionId，保证Gate可横向扩展。</li>
+<li>Member节点异常退出时，Master无法感知到，导致无法Unregister异常节点，那么新的请求有可能路由到异常节点，导致请求不可达。所以需要Master感知主动Kick异常节点。</li>
+<li>如果Master重启与更新，Member不重启的情况下会导致Master丢失掉所有Member信息。</li>
+<li>以上两点，采取的解决方案：通过GRPC在Master与Member之间维护心跳与注册。那为什么不采用ETCD或其他服务发现组件呢？我想在作者设计之初就是想减少依赖，来保证项目的足够轻量级吧，不依托任何组件来实现服务注册发现。</li>
+</ul>
+]]></description>
+                
+                
+                
+                
+                
+                    
+                        
+                    
+                        
+                    
+                        
+                            
+                                
+                                
+                                
+                                    <category domain="https://www.bbdshow.top/tags/nano/">nano</category>
+                                
+                            
+                                
+                                
+                                
+                                    <category domain="https://www.bbdshow.top/tags/game-server/">game server</category>
+                                
+                            
+                        
+                    
+                
+            </item>
         
             <item>
                 <title>Gitlab CI/CD Docker容器化部署</title>
