@@ -4,7 +4,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom" xml:lang="zh-CN">
     <title type="text">bbdshow</title>
     <subtitle type="html">bbdshow</subtitle>
-    <updated>2022-11-26T10:45:49+08:00</updated>
+    <updated>2022-12-01T14:33:21+08:00</updated>
     <id>https://www.bbdshow.top/</id>
     <link rel="alternate" type="text/html" href="https://www.bbdshow.top/" />
     <link rel="self" type="application/atom+xml" href="https://www.bbdshow.top/atom.xml" />
@@ -16,6 +16,233 @@
             </author>
     <rights>[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)</rights>
     <generator uri="https://gohugo.io/" version="0.105.0">Hugo</generator>
+        <entry>
+            <title type="text">Wsl2 升级记录</title>
+            <link rel="alternate" type="text/html" href="https://www.bbdshow.top/posts/os/wsl/" />
+            <id>https://www.bbdshow.top/posts/os/wsl/</id>
+            <updated>2022-12-01T14:19:37+08:00</updated>
+            <published>2022-11-30T13:56:50+08:00</published>
+            <author>
+                    <name>bbdshow</name>
+                    <uri>https://www.bbdshow.com/</uri>
+                    <email>https://github.com/bbdshow</email>
+                    </author>
+            <rights>[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)</rights>
+    
+    <summary type="html"><![CDATA[WSL2安装官方文档连接 直接参照官方文档执行就行，主要一下权限问题，使用管理员启动 ‘终端’ 下载Linux系统，Ubuntu 或者 debian 后续记录已 debian 为示例 安装和使用可能出现的问题 WslRegisterDistribution: 0x8007019e 打开程序启用/关闭，选择开启windows子系统（wsl） 记的进行……]]></summary>
+            
+                <content type="html"><![CDATA[<p><a href="https://learn.microsoft.com/zh-cn/windows/wsl/install#manual-installation-steps">WSL2安装官方文档连接</a></p>
+<p>直接参照官方文档执行就行，主要一下权限问题，使用管理员启动 ‘终端’</p>
+<p>下载Linux系统，Ubuntu 或者 debian 后续记录已 debian 为示例</p>
+<h4 id="安装和使用可能出现的问题">安装和使用可能出现的问题</h4>
+<h5 id="wslregisterdistribution-0x8007019e">WslRegisterDistribution: 0x8007019e</h5>
+<p>打开程序启用/关闭，选择开启windows子系统（wsl） 记的进行系统重启后生效</p>
+<blockquote>
+<p>dism.exe /online /enable-feature /featurename:Microsoft-Windows-Subsystem-Linux /all /norestart</p>
+</blockquote>
+<h5 id="wsl备份导入操作">WSL备份/导入操作</h5>
+<blockquote>
+<p>wsl --export debian D:\Desktop\Debian.tar
+wsl --import Debian D:\wsl2\Debian &quot;D:\Desktop\Debian.tar&quot; --version 2</p>
+</blockquote>
+<p>如果需要<strong>改变WSL的存储</strong>，也可以通过此方法进行</p>
+<h5 id="debian中无法使用-systemctl-如何采取开机自启">Debian中无法使用 systemctl 如何采取开机自启</h5>
+<p>System has not been booted with systemd as init system (PID 1). Can't operate.
+Failed to connect to bus: Host is down</p>
+<p>wsl2 <a href="https://github.com/MicrosoftDocs/WSL/issues/457">关于systemd安装问题</a></p>
+<p>采用 service 命令 + 开机执行脚本。实现开机自启功能</p>
+<blockquote>
+<p>sudo vim /etc/init.wsl</p>
+</blockquote>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-sh" data-lang="sh"><span class="line"><span class="cl"><span class="cp">#!/bin/sh
+</span></span></span><span class="line"><span class="cl"><span class="cp"></span><span class="c1"># 启动docker</span>
+</span></span><span class="line"><span class="cl">service docker start
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>编写vb脚本，让windows开机执行</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-vb" data-lang="vb"><span class="line"><span class="cl"><span class="k">Set</span> <span class="n">ws</span> <span class="o">=</span> <span class="n">WScript</span><span class="p">.</span><span class="n">CreateObject</span><span class="p">(</span><span class="s">&#34;WScript.Shell&#34;</span><span class="p">)</span>        
+</span></span><span class="line"><span class="cl"><span class="n">ws</span><span class="p">.</span><span class="n">run</span> <span class="s">&#34;wsl -d debian -u root /etc/init.wsl&#34;</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>上述内容保存为 *.vbs 格式 例如 wsl-start.vbs</p>
+<p>按 win+R 输入 shell:startup 将以上vbs文件放入该目录</p>
+<h5 id="网络版块如何实现快捷的-wsl-与-windows-网络互通">网络版块，如何实现快捷的 WSL 与 windows 网络互通</h5>
+<p>实现逻辑是基于系统本地的hosts规则。</p>
+<p>因为默认情况WSL2每次开机都是会创建NAT网络，会有vEthernet (WSL)网卡，每一次开机IP就会变更，所以在Debian开机启动时，通过shell脚本读取到当前机器的IP地址，自动设置host文件，达到网络互通的目的。</p>
+<ul>
+<li>允许防火墙规则 WSL 网卡 ，win管理员运行，（默认WSL是无法访问Windows）</li>
+</ul>
+<blockquote>
+<p>New-NetFirewallRule -DisplayName &quot;WSL&quot; -Direction Inbound  -InterfaceAlias &quot;vEthernet (WSL)&quot;  -Action Allow</p>
+</blockquote>
+<ul>
+<li>编写脚本，修改<strong>windows hosts文件权限</strong>，允许所有用户对此文件修改，这样才能让WSL里面的shell操作windows的文件。</li>
+</ul>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-sh" data-lang="sh"><span class="line"><span class="cl"><span class="cp">#!/bin/sh
+</span></span></span><span class="line"><span class="cl"><span class="cp"></span><span class="c1"># 基于Debian 11 设置 /etc/hosts 和 windows 的hosts 文件，实现 wsl -- windows 通过domain 访问</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># Ubuntu对命令会稍微修改一下，原理一样</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># domain 可以设置成自己喜欢的</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># 解决wsl每次重启，IP变更问题</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># win hosts 文件路径</span>
+</span></span><span class="line"><span class="cl"><span class="nv">win_hosts_path</span><span class="o">=</span><span class="s2">&#34;/mnt/c/Windows/System32/drivers/etc/hosts&#34;</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># 为 wsl2 设置的域名</span>
+</span></span><span class="line"><span class="cl"><span class="nv">wsl_domain</span><span class="o">=</span><span class="s2">&#34;debian.wsl&#34;</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># 获取 wsl2 的 ip</span>
+</span></span><span class="line"><span class="cl"><span class="nv">wsl_ip</span><span class="o">=</span><span class="k">$(</span>ip address <span class="p">|</span> grep eth0 <span class="p">|</span> grep -w inet <span class="p">|</span> awk <span class="s1">&#39;{print $2}&#39;</span> <span class="p">|</span> sed -e <span class="s1">&#39;s/\/20//&#39;</span><span class="k">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># 设置win的hosts文件</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># 判断是否已存在 wsl2 的域名，如果存在则修改，否则追加</span>
+</span></span><span class="line"><span class="cl"><span class="k">if</span> grep -wq <span class="s2">&#34;</span><span class="nv">$wsl_domain</span><span class="s2">&#34;</span> <span class="nv">$win_hosts_path</span>
+</span></span><span class="line"><span class="cl"><span class="k">then</span>
+</span></span><span class="line"><span class="cl">    <span class="c1"># 此处因为权限问题没有直接用 sed 修改 hosts 文件</span>
+</span></span><span class="line"><span class="cl">    <span class="nv">win_hosts</span><span class="o">=</span><span class="k">$(</span>sed -s <span class="s2">&#34;s/.* </span><span class="nv">$wsl_domain</span><span class="s2">/</span><span class="nv">$wsl_ip</span><span class="s2"> </span><span class="nv">$wsl_domain</span><span class="s2">/g&#34;</span> <span class="nv">$win_hosts_path</span><span class="k">)</span>
+</span></span><span class="line"><span class="cl">    <span class="nb">echo</span> <span class="s2">&#34;</span><span class="nv">$win_hosts</span><span class="s2">&#34;</span> &gt; <span class="nv">$win_hosts_path</span>
+</span></span><span class="line"><span class="cl"><span class="k">else</span>
+</span></span><span class="line"><span class="cl">    <span class="nb">echo</span> <span class="s2">&#34;</span><span class="nv">$wsl_ip</span><span class="s2"> </span><span class="nv">$wsl_domain</span><span class="s2">&#34;</span> &gt;&gt; <span class="nv">$win_hosts_path</span>
+</span></span><span class="line"><span class="cl"><span class="k">fi</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># 设置wsl的hosts文件</span>
+</span></span><span class="line"><span class="cl"><span class="nv">wsl_hosts_path</span><span class="o">=</span><span class="s2">&#34;/etc/hosts&#34;</span>
+</span></span><span class="line"><span class="cl"><span class="nv">win_domain</span><span class="o">=</span><span class="s2">&#34;windows.wsl&#34;</span>
+</span></span><span class="line"><span class="cl"><span class="nv">win_ip</span><span class="o">=</span><span class="k">$(</span>cat /etc/resolv.conf <span class="p">|</span> grep <span class="s2">&#34;nameserver&#34;</span> <span class="p">|</span> awk <span class="s1">&#39;{print $2}&#39;</span><span class="k">)</span>
+</span></span><span class="line"><span class="cl"><span class="k">if</span> grep -wq <span class="s2">&#34;</span><span class="nv">$win_domain</span><span class="s2">&#34;</span> <span class="nv">$wsl_hosts_path</span>
+</span></span><span class="line"><span class="cl"><span class="k">then</span>
+</span></span><span class="line"><span class="cl">    <span class="nv">wsl_hosts</span><span class="o">=</span><span class="k">$(</span>sed -s <span class="s2">&#34;s/.* </span><span class="nv">$win_domain</span><span class="s2">/</span><span class="nv">$win_ip</span><span class="s2"> </span><span class="nv">$win_domain</span><span class="s2">/g&#34;</span> <span class="nv">$wsl_hosts_path</span><span class="k">)</span>
+</span></span><span class="line"><span class="cl">    <span class="nb">echo</span> <span class="nv">$wsl_hosts</span> &gt; <span class="nv">$wsl_hosts_path</span>
+</span></span><span class="line"><span class="cl"><span class="k">else</span>
+</span></span><span class="line"><span class="cl">    <span class="nb">echo</span> <span class="s2">&#34;</span><span class="nv">$win_ip</span><span class="s2"> </span><span class="nv">$win_domain</span><span class="s2">&#34;</span> &gt;&gt; <span class="nv">$wsl_hosts_path</span>
+</span></span><span class="line"><span class="cl"><span class="k">fi</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>把此脚本设置成开机启动。 可以类似于docker开机自启，放到 /etc/init.wsl</p>
+<blockquote>
+<p>sudo vim /etc/init.wsl</p>
+</blockquote>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-sh" data-lang="sh"><span class="line"><span class="cl"><span class="cp">#!/bin/sh
+</span></span></span><span class="line"><span class="cl"><span class="cp"></span><span class="c1"># 启动docker</span>
+</span></span><span class="line"><span class="cl">service docker start
+</span></span><span class="line"><span class="cl"><span class="c1"># 设置hosts</span>
+</span></span><span class="line"><span class="cl">sh /etc/init.d/set_hosts.sh
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h6 id="最终测试">最终测试</h6>
+<blockquote>
+<p>wsl.exe --shutdown</p>
+</blockquote>
+<p>使用root用户启动并执行init.wsl脚本</p>
+<blockquote>
+<p>wsl.exe -d debian -u root /etc/init.wsl</p>
+</blockquote>
+]]></content>
+            
+            
+            
+            
+            
+                
+                    
+                        
+                            
+                            
+                            
+                                <category scheme="https://www.bbdshow.top/categories/os/" term="os" label="os" />
+                            
+                        
+                            
+                            
+                            
+                                <category scheme="https://www.bbdshow.top/categories/windows/" term="windows" label="windows" />
+                            
+                        
+                    
+                
+                    
+                
+                    
+                        
+                            
+                            
+                            
+                                <category scheme="https://www.bbdshow.top/tags/os/" term="os" label="os" />
+                            
+                        
+                            
+                            
+                            
+                                <category scheme="https://www.bbdshow.top/tags/windows/" term="windows" label="windows" />
+                            
+                        
+                            
+                            
+                            
+                                <category scheme="https://www.bbdshow.top/tags/wsl2/" term="wsl2" label="wsl2" />
+                            
+                        
+                    
+                
+            
+        </entry>
+    
         <entry>
             <title type="text">Go Slice Reflect 反射删除切片任意重复结构</title>
             <link rel="alternate" type="text/html" href="https://www.bbdshow.top/posts/golang/slice-remove-duplicate/" />
