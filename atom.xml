@@ -4,7 +4,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom" xml:lang="zh-CN">
     <title type="text">bbdshow</title>
     <subtitle type="html">bbdshow</subtitle>
-    <updated>2022-12-01T14:33:21+08:00</updated>
+    <updated>2022-12-01T14:35:21+08:00</updated>
     <id>https://www.bbdshow.top/</id>
     <link rel="alternate" type="text/html" href="https://www.bbdshow.top/" />
     <link rel="self" type="application/atom+xml" href="https://www.bbdshow.top/atom.xml" />
@@ -17,10 +17,128 @@
     <rights>[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)</rights>
     <generator uri="https://gohugo.io/" version="0.105.0">Hugo</generator>
         <entry>
-            <title type="text">Wsl2 升级记录</title>
+            <title type="text">WSL Debian11 安装</title>
+            <link rel="alternate" type="text/html" href="https://www.bbdshow.top/posts/os/debian/" />
+            <id>https://www.bbdshow.top/posts/os/debian/</id>
+            <updated>2022-12-01T14:34:57+08:00</updated>
+            <published>2022-11-30T13:58:22+08:00</published>
+            <author>
+                    <name>bbdshow</name>
+                    <uri>https://www.bbdshow.com/</uri>
+                    <email>https://github.com/bbdshow</email>
+                    </author>
+            <rights>[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)</rights>
+    
+    <summary type="html"><![CDATA[Microsoft store 下载 Debian11 系统 点击图标进行安装引导: 可能出现 WslRegisterDistribution: 0x8007019e 这是未开启WSL，或者开启后电脑未重启 WSL初始没有 root 密码，所以先设置一般用户密码，然后再通过 sudo passwd root 修改root密码。过程需要验证一般用户密码的密码，再设置 root 账号密码。 替换成国内镜像源 sed -i "s@http://(deb|security).debian.org@https://mirrors.aliyun.com@g" /etc/apt/sources.list……]]></summary>
+            
+                <content type="html"><![CDATA[<p>Microsoft store 下载 Debian11 系统</p>
+<p>点击图标进行安装引导:</p>
+<blockquote>
+<p>可能出现 WslRegisterDistribution: 0x8007019e 这是未开启WSL，或者开启后电脑未重启</p>
+</blockquote>
+<p>WSL初始没有 root 密码，所以先设置一般用户密码，然后再通过 sudo passwd root 修改root密码。过程需要验证一般用户密码的密码，再设置 root 账号密码。</p>
+<h4 id="替换成国内镜像源">替换成国内镜像源</h4>
+<blockquote>
+<p>sed -i &quot;s@http://(deb|security).debian.org@https://mirrors.aliyun.com@g&quot; /etc/apt/sources.list</p>
+</blockquote>
+<h4 id="安装一些常用软件">安装一些常用软件</h4>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-sh" data-lang="sh"><span class="line"><span class="cl">apt install -y vim curl wget tree lsb-release telnet
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h4 id="安装docker">安装Docker</h4>
+<p><a href="https://docs.docker.com/engine/install/debian/">参考Docker官网安装连接</a></p>
+<h4 id="如果通过service启动失败查看log-varlogdockerlog">如果通过service启动失败。查看log /var/log/docker.log</h4>
+<blockquote>
+<p>initializing network controller: error obtaining controller instance: unable to add return rule in DOCKER-ISOLATION-STAGE-1 chain:  (iptables failed: iptables --wait -A DOCKER-ISOLATION-STAGE-1 -j RETURN: iptables v1.8.7 (nf_tables):  RULE_APPEND failed (No such file or directory): rule in chain DOCKER-ISOLATION-STAGE-1</p>
+</blockquote>
+<p>需要修改防火墙规则，适用于 debian 与 ubuntu <a href="https://github.com/microsoft/WSL/issues/6655">参考Issues</a></p>
+<blockquote>
+<p>sudo update-alternatives --set iptables /usr/sbin/iptables-legacy
+sudo update-alternatives --set ip6tables /usr/sbin/ip6tables-legacy</p>
+</blockquote>
+<h4 id="替换docker仓库源-采用阿里云源">替换docker仓库源， 采用阿里云源</h4>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-sh" data-lang="sh"><span class="line"><span class="cl">sudo mkdir -p /etc/docker
+</span></span><span class="line"><span class="cl">sudo tee /etc/docker/daemon.json <span class="s">&lt;&lt;-&#39;EOF&#39;
+</span></span></span><span class="line"><span class="cl"><span class="s">{
+</span></span></span><span class="line"><span class="cl"><span class="s">  &#34;registry-mirrors&#34;: [&#34;https://xxxx.mirror.aliyuncs.com&#34;]
+</span></span></span><span class="line"><span class="cl"><span class="s">}
+</span></span></span><span class="line"><span class="cl"><span class="s">EOF</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># 重启docker</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h4 id="设置docker开机自启">设置Docker开机自启</h4>
+<p>利用WSL开启执行开机脚本，在开机脚本里面执行 service docker start <a href="https://notes.bbdshow.top/posts/os/wsl">参考WSL2升级记录</a>,文章还有关于WSL备份和网络问题。</p>
+]]></content>
+            
+            
+            
+            
+            
+                
+                    
+                        
+                            
+                            
+                            
+                                <category scheme="https://www.bbdshow.top/categories/os/" term="os" label="os" />
+                            
+                        
+                            
+                            
+                            
+                                <category scheme="https://www.bbdshow.top/categories/linux/" term="linux" label="linux" />
+                            
+                        
+                    
+                
+                    
+                
+                    
+                        
+                            
+                            
+                            
+                                <category scheme="https://www.bbdshow.top/tags/os/" term="os" label="os" />
+                            
+                        
+                            
+                            
+                            
+                                <category scheme="https://www.bbdshow.top/tags/linux/" term="linux" label="linux" />
+                            
+                        
+                            
+                            
+                            
+                                <category scheme="https://www.bbdshow.top/tags/debian/" term="debian" label="debian" />
+                            
+                        
+                    
+                
+            
+        </entry>
+    
+        <entry>
+            <title type="text">WSL2 升级记录</title>
             <link rel="alternate" type="text/html" href="https://www.bbdshow.top/posts/os/wsl/" />
             <id>https://www.bbdshow.top/posts/os/wsl/</id>
-            <updated>2022-12-01T14:19:37+08:00</updated>
+            <updated>2022-12-01T14:34:53+08:00</updated>
             <published>2022-11-30T13:56:50+08:00</published>
             <author>
                     <name>bbdshow</name>
