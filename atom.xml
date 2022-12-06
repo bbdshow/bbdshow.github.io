@@ -4,7 +4,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom" xml:lang="zh-CN">
     <title type="text">bbdshow</title>
     <subtitle type="html">bbdshow</subtitle>
-    <updated>2022-12-01T14:35:21+08:00</updated>
+    <updated>2022-12-06T15:08:26+08:00</updated>
     <id>https://www.bbdshow.top/</id>
     <link rel="alternate" type="text/html" href="https://www.bbdshow.top/" />
     <link rel="self" type="application/atom+xml" href="https://www.bbdshow.top/atom.xml" />
@@ -17,10 +17,93 @@
     <rights>[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)</rights>
     <generator uri="https://gohugo.io/" version="0.105.0">Hugo</generator>
         <entry>
+            <title type="text">联想 Yoga 14s 2021 I5 故障记录</title>
+            <link rel="alternate" type="text/html" href="https://www.bbdshow.top/posts/fault/yoga/" />
+            <id>https://www.bbdshow.top/posts/fault/yoga/</id>
+            <updated>2022-12-06T13:22:05+08:00</updated>
+            <published>2022-12-06T12:58:24+08:00</published>
+            <author>
+                    <name>bbdshow</name>
+                    <uri>https://www.bbdshow.com/</uri>
+                    <email>https://github.com/bbdshow</email>
+                    </author>
+            <rights>[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)</rights>
+    
+    <summary type="html"><![CDATA[记录联想 Yoga 14s 2021 笔记本故障处理 故障列表 Type-C 视频信号异常 现象 突然外接显示器收不到视频信号，Type-C能正常供电 解决 方案一 移除所有外接设备 ==> 长按 开机键 20s 以上（过程中可能出现闪屏或者开机，不用在意）==> 松手后，再正常开机 方案二 移除所有外接设……]]></summary>
+            
+                <content type="html"><![CDATA[<p>记录联想 Yoga 14s 2021 笔记本故障处理</p>
+<h3 id="故障列表">故障列表</h3>
+<h4 id="type-c-视频信号异常">Type-C 视频信号异常</h4>
+<h5 id="现象">现象</h5>
+<ul>
+<li>突然外接显示器收不到视频信号，Type-C能正常供电</li>
+</ul>
+<h5 id="解决">解决</h5>
+<h6 id="方案一">方案一</h6>
+<ul>
+<li>移除所有外接设备 ==&gt; 长按 开机键 20s 以上（过程中可能出现闪屏或者开机，不用在意）==&gt; 松手后，再正常开机</li>
+</ul>
+<h6 id="方案二">方案二</h6>
+<ul>
+<li>移除所有外接设备 ==&gt; 关机 ==&gt; Fn + S + V （依序同时按下）【重置为工厂状态\运输状态，未接通电源的情况下按开机键无法启动电脑】==&gt; 插上电源（注：<strong>必需是原装充电器</strong>）电源灯亮 ==&gt; 正常开机，Type-C接口恢复正常</li>
+</ul>
+<p>PS 所以联想电脑未插电源，无法开机，不能作为验证新机的条件了。此状态可以通过 Fn + S + V 实现</p>
+<h6 id="备选排查问题">备选排查问题</h6>
+<ul>
+<li>按 Insert 键（星星键 F12 旁） 查看显示器是否有显示。 此方法未测试</li>
+</ul>
+<p><strong>注：优先采用方案一，不行再测试方案二</strong></p>
+<h5 id="原因">原因</h5>
+<p>目前未找到具体原因，猜测是某种特殊情况下导致的 硬件软状态异常，所以通过重置的方式，达到初始状态来解决问题。</p>
+]]></content>
+            
+            
+            
+            
+            
+                
+                    
+                        
+                            
+                            
+                            
+                                <category scheme="https://www.bbdshow.top/categories/%E6%95%85%E9%9A%9C/" term="故障" label="故障" />
+                            
+                        
+                            
+                            
+                            
+                                <category scheme="https://www.bbdshow.top/categories/%E7%94%B5%E8%84%91/" term="电脑" label="电脑" />
+                            
+                        
+                    
+                
+                    
+                
+                    
+                        
+                            
+                            
+                            
+                                <category scheme="https://www.bbdshow.top/tags/yoga14s/" term="yoga14s" label="yoga14s" />
+                            
+                        
+                            
+                            
+                            
+                                <category scheme="https://www.bbdshow.top/tags/%E6%95%85%E9%9A%9C/" term="故障" label="故障" />
+                            
+                        
+                    
+                
+            
+        </entry>
+    
+        <entry>
             <title type="text">WSL Debian11 安装</title>
             <link rel="alternate" type="text/html" href="https://www.bbdshow.top/posts/os/debian/" />
             <id>https://www.bbdshow.top/posts/os/debian/</id>
-            <updated>2022-12-01T14:34:57+08:00</updated>
+            <updated>2022-12-01T14:36:10+08:00</updated>
             <published>2022-11-30T13:58:22+08:00</published>
             <author>
                     <name>bbdshow</name>
@@ -96,7 +179,7 @@ sudo update-alternatives --set ip6tables /usr/sbin/ip6tables-legacy</p>
                             
                             
                             
-                                <category scheme="https://www.bbdshow.top/categories/os/" term="os" label="os" />
+                                <category scheme="https://www.bbdshow.top/categories/os/" term="OS" label="OS" />
                             
                         
                             
@@ -114,7 +197,7 @@ sudo update-alternatives --set ip6tables /usr/sbin/ip6tables-legacy</p>
                             
                             
                             
-                                <category scheme="https://www.bbdshow.top/tags/os/" term="os" label="os" />
+                                <category scheme="https://www.bbdshow.top/tags/os/" term="OS" label="OS" />
                             
                         
                             
@@ -323,7 +406,7 @@ Failed to connect to bus: Host is down</p>
                             
                             
                             
-                                <category scheme="https://www.bbdshow.top/categories/os/" term="os" label="os" />
+                                <category scheme="https://www.bbdshow.top/categories/os/" term="OS" label="OS" />
                             
                         
                             
@@ -341,7 +424,7 @@ Failed to connect to bus: Host is down</p>
                             
                             
                             
-                                <category scheme="https://www.bbdshow.top/tags/os/" term="os" label="os" />
+                                <category scheme="https://www.bbdshow.top/tags/os/" term="OS" label="OS" />
                             
                         
                             
