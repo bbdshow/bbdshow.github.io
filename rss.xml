@@ -23,10 +23,201 @@
         
             <copyright>[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)</copyright>
         
-        <lastBuildDate>Tue, 06 Dec 2022 15:08:26 +0800</lastBuildDate>
+        <lastBuildDate>Wed, 07 Dec 2022 12:33:16 +0800</lastBuildDate>
         
             <atom:link rel="self" type="application/rss+xml" href="https://www.bbdshow.top/rss.xml" />
         
+        
+            <item>
+                <title>acme.sh 自动颁发更新免费HTTPS证书</title>
+                <link>https://www.bbdshow.top/posts/tools/acme.sh/</link>
+                <guid isPermaLink="true">https://www.bbdshow.top/posts/tools/acme.sh/</guid>
+                <pubDate>Wed, 07 Dec 2022 11:19:39 +0800</pubDate>
+                
+                    <author>https://github.com/bbdshow (bbdshow)</author>
+                
+                <copyright>[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)</copyright>
+                
+                    <description><![CDATA[<p><a href="https://github.com/acmesh-official/acme.sh">Acme.sh</a> 是一款优秀免费的HTTPS证书管理器,2020年部署过一次，直到今天从未出现过任何异常，稳定高效。</p>
+<p>最近新添加了域名，所以又操作了一次，发现忘的差不多了，因此温故而知新。<a href="https://github.com/acmesh-official/acme.sh/wiki/%E8%AF%B4%E6%98%8E">中文官方文档</a></p>
+<h4 id="国内的服务器在无法翻的情况下怎么安装">国内的服务器在无法翻的情况下怎么安装？</h4>
+<p>官方给的方法是通过gitee下载安装，但是当我尝试，需要登录等问题，觉得比较麻烦。通过分析结构，我采用了Copy的另类方式安装</p>
+<ul>
+<li>在本地WSL系统上，export http_proxy... 本地代理 执行安装脚本，注意安装用户</li>
+<li>此时 ~/.acme.sh 文件下包含所要的全部文件 tar 打包.acme.sh</li>
+<li>上传到目标服务器同目录结构下，如果没有权限，则 chmod 777 ~/.acme.sh/acme.sh 权限</li>
+<li>alias acme.sh=~/.acme.sh/acme.sh  不出意外就安装成功了。 acme.sh</li>
+<li>注意此方法安装证书，并不会默认更新证书， 所以要执行  acme.sh --install-cronjob</li>
+</ul>
+<h4 id="安装之后的结构">安装之后的结构</h4>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-sh" data-lang="sh"><span class="line"><span class="cl">tree -L <span class="m">1</span> ~/.acme.sh
+</span></span><span class="line"><span class="cl"><span class="c1"># 可看到如下结构</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># account.conf 一些关联账户配置，比如最新默认的CA zeroSSL 是需要邮箱的。 letsencrypt  则不需要</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># 还存储有 DNS 的密钥等，用于DNS验证域名所属</span>
+</span></span><span class="line"><span class="cl">├── account.conf
+</span></span><span class="line"><span class="cl"><span class="c1"># acme.sh 就是此工具的所有方法本体了</span>
+</span></span><span class="line"><span class="cl">├── acme.sh
+</span></span><span class="line"><span class="cl"><span class="c1"># acme.sh.env 一些环境变量</span>
+</span></span><span class="line"><span class="cl">├── acme.sh.env
+</span></span><span class="line"><span class="cl"><span class="c1"># deploy 这个文件夹里面包含了N多种服务器部署方式的脚本，比如常用的 nginx apache docker 等等</span>
+</span></span><span class="line"><span class="cl">├── deploy
+</span></span><span class="line"><span class="cl"><span class="c1"># dnsapi DNS 服务商不同的API，用于签发时自动验证域名所属</span>
+</span></span><span class="line"><span class="cl">├── dnsapi
+</span></span><span class="line"><span class="cl"><span class="c1"># 模拟http请求 header</span>
+</span></span><span class="line"><span class="cl">├── http.header
+</span></span><span class="line"><span class="cl"><span class="c1"># 一些操作可以选择进行通知设置，比如支持 mail dingtalk smtp 等等</span>
+</span></span><span class="line"><span class="cl">└── notify
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h4 id="设置默认ca-为-letsencrypt">设置默认CA 为 letsencrypt</h4>
+<p>zeroSSL 需要邮箱，还未去了解，所以就直接采用以前的 letsencrypt</p>
+<blockquote>
+<p>acme.sh --set-default-ca --server letsencrypt</p>
+</blockquote>
+<h4 id="如何添加-泛域名证书-例如-bbdshowtop">如何添加 泛域名证书 例如 *.bbdshow.top</h4>
+<p>通常我在比较懒的情况下，希望配置一次就满足以后的所有扩展需求。所以HTTPS证书配置常有泛域名需求。毕竟泛域名的证书收费实在是太贵了！</p>
+<p>此处目前只记录 <strong>自动DNS方式 域名服务商 阿里云</strong> 其他域名服务商，也介绍了相关方法</p>
+<h5 id="自动dns方式">自动DNS方式</h5>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span><span class="lnt">8
+</span><span class="lnt">9
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-sh" data-lang="sh"><span class="line"><span class="cl"><span class="c1"># Ali_Key 与 Ali_Secret 在阿里云控制后台获取, 不同DNS服务商环境变量Key是不同的，如何确认？ </span>
+</span></span><span class="line"><span class="cl"><span class="c1"># 找到 ~/.acme.sh/dnsapi/dns_xx.sh 前几行有明确读取环境变量的代码</span>
+</span></span><span class="line"><span class="cl"><span class="nb">export</span> <span class="nv">Ali_Key</span><span class="o">=</span><span class="s2">&#34;xxx&#34;</span>
+</span></span><span class="line"><span class="cl"><span class="nb">export</span> <span class="nv">Ali_Secret</span><span class="o">=</span><span class="s2">&#34;xxx&#34;</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># 这里注意 dns_ali 就代表调取 dnsapi/dns_ali.sh 其他DNS服务商可以 dnsapi 这个目录里面查询具体的命名，例: cloudflare = dns.cf.sh</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># 这里注意 泛域名 * 这里一定要加 &#39;&#39; 保证正常解析</span>
+</span></span><span class="line"><span class="cl">acme.sh --issue -d <span class="s1">&#39;*.bbdshow.top&#39;</span>  --dns dns_ali
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># 当你还需要第二次添加域名,如果是同一DNS服务商，就不需要 export 了，相关的 DNS Key 会保存在 account.conf 文件内</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h5 id="自动安装证书">自动安装证书</h5>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-sh" data-lang="sh"><span class="line"><span class="cl">acme.sh --install-cert -d <span class="s1">&#39;*.bbdshow.top&#39;</span> <span class="se">\
+</span></span></span><span class="line"><span class="cl"><span class="se"></span>--key-file       /etc/nginx/ssl/bbdshow.top.key <span class="se">\
+</span></span></span><span class="line"><span class="cl"><span class="se"></span>--fullchain-file /etc/nginx/ssl/bbdshow.top.crt <span class="se">\
+</span></span></span><span class="line"><span class="cl"><span class="se"></span>--reloadcmd     <span class="s2">&#34;service nginx force-reload&#34;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># 会把相关证书写入到 /etc/nginx/ssl 后期 crontab 更新安装证书同理</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># service nginx force-reload 如果是 systemctl 命令会自动替换成 /bin/systemctl force-reload nginx.service</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># 执行之后 此时 ~/.acme.sh/*.bbdshow.top/ 文件内，就是域名的所有信息</span>
+</span></span><span class="line"><span class="cl">acme.sh --info -d <span class="s1">&#39;*.bbdshow.top&#39;</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h5 id="证书安装后nginx-的配置简单示例">证书安装后，nginx 的配置简单示例</h5>
+<pre tabindex="0"><code class="language-conf" data-lang="conf">server {
+       listen       443 ssl http2;
+       server_name  xxx.bbdshow.top;
+          
+      
+       index        index.html;
+    
+       ssl_certificate &#34;/etc/nginx/ssl/bbdshow.top.crt&#34;;
+       ssl_certificate_key &#34;/etc/nginx/ssl/bbdshow.top.key&#34;;
+       ssl_session_cache shared:SSL:1m;
+       ssl_session_timeout  10m;
+       ssl_ciphers HIGH:!aNULL:!MD5;
+       ssl_prefer_server_ciphers on;
+
+       ...
+}
+</code></pre><h4 id="总结">总结</h4>
+<p>acme.sh 功能确实强大，很快捷方便的为网站加上了HTTPS，还有很多功能未使用，如果后续使用到，也会做相应的记录。</p>
+]]></description>
+                
+                
+                
+                
+                
+                    
+                        
+                            
+                                
+                                
+                                
+                                    <category domain="https://www.bbdshow.top/categories/%E5%B7%A5%E5%85%B7/">工具</category>
+                                
+                            
+                                
+                                
+                                
+                                    <category domain="https://www.bbdshow.top/categories/%E9%83%A8%E7%BD%B2/">部署</category>
+                                
+                            
+                        
+                    
+                        
+                    
+                        
+                            
+                                
+                                
+                                
+                                    <category domain="https://www.bbdshow.top/tags/acme/">acme</category>
+                                
+                            
+                                
+                                
+                                
+                                    <category domain="https://www.bbdshow.top/tags/shell/">shell</category>
+                                
+                            
+                                
+                                
+                                
+                                    <category domain="https://www.bbdshow.top/tags/https/">https</category>
+                                
+                            
+                        
+                    
+                
+            </item>
         
             <item>
                 <title>联想 Yoga 14s 2021 I5 故障记录</title>
